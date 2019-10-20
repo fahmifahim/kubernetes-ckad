@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubia-manual
+#  ownerReferences:
+#  - apiVersion: v1
+#    kind: ReplicationController
+#    name: kubia-manual-rc
+spec:
+  containers:
+  - image: luksa/kubia
+    name: kubia
+    ports:
+    - containerPort: 8080
+      protocol: TCP

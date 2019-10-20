@@ -1,0 +1,303 @@
+-- ★★ Docker Kubernetes Commands ★★ --
+
+legend
+★  : new big topic
+-- : smaller topics
+#  : command
+=  : command execution result 
+
+
+★★★Creating, Running, and Sharing Container Image★★★
+--Running simple container 
+# docker run <image>:<tag>
+ex:
+# docker run busybox:latest echo "Hello World" 
+  = docker pull busybox-image from Docker Registry or local machine, create a container and run the "Hello World"
+
+--Creating a Dockerfile for the image
+Dockerfile sample: 
+ FROM node:7
+ ADD app.js /app.js
+ ENTRYPOINT ["node", "app.js"]
+
+Directory tree: 
+.
+├── Dockerfile
+└── app.js
+
+--Build container image
+# docker build [OPTIONS] PATH
+# docker build -t kubia .
+-t, --tag list : Name and optionally a tag in the 'name:tag' format
+
+--Check the built images
+# docker images ls
+# docker images ls | grep <image that had just been build>
+  = REPOSITORY			TAG			IMAGE ID		CREATED			SIZE
+    kubia				latest		01741bed2b6c	2 weeks ago		660MB
+    luksa/kubia			latest		bf5bc565dc79	2 weeks ago		660MB
+
+--Remove built image
+# docker image rm <image-name>
+# docker image rm -f <image-name>
+
+--Running the container image
+# docker run --name <container-name> -p <port> -d <image-name-to-be-detached>
+# docker run --name kubia-container -p 8080:8080 -d kubia
+-p, --publish list : Publish a container's port(s) to the host
+-d, --detach : Run container in background and print container ID
+
+--Check whether the container normally built
+# docker container ls
+# docker ps -a
+
+--Accessing http docker app
+# curl localhost:8080
+or open your browser and access localhost:8080
+
+--Listing all running containers
+# docker ps 
+CONTAINER ID 	IMAGE 	COMMAND 		CREATED 		STATUS 			PORTS                    NAMES
+5844d8fa5c50 	kubia 	"node app.js" 	18 minutes ago 	Up 18 minutes 	0.0.0.0:8080->8080/tcp   kubia-container
+
+--List all running and stopped containers
+# docker ps -a
+CONTAINER ID		IMAGE			COMMAND			CREATED			STATUS					PORTS	NAMES
+796f0b2a7fca		luksa/kubia		"node app.js"	2 weeks ago		Exited	(137)2 weeks ago		ff-kubia-container
+ca08efc6669e		kubia			"node app.js"	2 weeks ago		Exited (137) 2 weeks ago		kubia-container
+
+--Getting additional information about a container
+# docker inspect [OPTIONS] NAME|ID [NAME|ID...]
+# docker inspect kubia-container
+Docker will print out a long JSON containing low-level information about the container. 
+
+--Exploring the inside of running container
+# docker exec -it <container-name> bash
+# docker exec -it kubia-container bash
+-i: makes sure STDIN is kept open
+-t: allocates pseudo terminal (TTY)
+
+--Stopping and Removing Container
+# docker stop <container-name|id>   --> # docker start <conainer-name|id>
+# docker rm <container-name|id>
+
+
+--Pushing the image to an image registry
+--Login to http://hub.docker.com
+# docker login
+Username: 		#famy
+Password: 
+Login succeeded
+
+--Tag image under additional tag
+# docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
+# docker tag kubia famy/kubia
+# docker image ls | head
+REPOSITORY		TAG			IMAGE ID		CREATED			SIZE
+famy/kubia		latest		bf5bc565dc79	2 hours ago		660MB
+kubia			latest		bf5bc565dc79	2 hours ago		660MB
+
+--Pushing the image to Docker Hub
+# docker push famy/kubia
+!! make sure your docker hub id same as the tag name
+
+--Running the image on different machine
+# docker run -p 8080:8080 -d famy/kubia
+
+
+
+★★Kubernetes with Minikube
+--Installing Minikube
+MAC OSX
+https://kubernetes.io/docs/tasks/tools/install-minikube/
+# brew cask install minikube
+
+--Starting Minikube
+# minikube start
+# minikube status
+  host: Running
+  kubelet: Running
+  apiserver: Running
+  kubectl: Correctly Configured: pointing to minikube-vm at 192.168.99.112
+
+--Check cluster availability
+# kubectl cluster-info
+
+--Deploying Node.js app to Kubernetes
+# kubectl run kubia --image=famy/kubia --port=8080 --generator=run/v1
+# kubect get pods
+
+--Accessing your web application pod
+To make pod accessible from outside, you'll expose it through a Service object. 
+A special service of type LoadBalancer need to be configured not only enable internal access but also provide public IP to the pod. 
+
+-Expose the ReplicationController (rc)
+# kubectl get rc
+NAME    DESIRED   CURRENT   READY   AGE
+kubia   1         1         1       16h
+# kubectl expose rc kubia --type=LoadBalancer --name kubia-http
+  =  service/kubia-http exposed
+
+-Listing services
+# kubectl get services
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+kubernetes   ClusterIP      10.96.0.1       <none>        443/TCP          17h
+kubia-http   LoadBalancer   10.108.140.71   <pending>     8080:30188/TCP   3m33s
+!! Minikube doesn't support LoadBalancer, so the external IP will not available. But we may access the pod via external ports. 
+
+-Run and get the IP and port (Minikube)
+# minikube service <service-name>
+# minikube service kubia-http
+🎉  Opening kubernetes service default/kubia-http in default browser...
+
+-Replication Controller Role
+It makes sure there is always exactly one instance of your pod running. If a pod were disappear for any reason, the Replication Controller will create a new pod to replace the missing one. 
+The number of instance can be configured in ReplicationController
+
+--Scaling application
+# kubectl get rc
+# kubectl scale rc <rc-name> --replicas=<number-of-replicas>
+# kubectl scale rc kubia --replicas=3
+
+--Minikube dashboard
+# kubectl cluster-info 
+# minikube dashboard
+ 
+
+
+★★★PODS: running containers in Kubernetes★★★
+--Flat inter-pod network
+All pods in Kubernetes cluster reside in a single flat, shared, network-address space, which means every pod can access every other pod at other pod's IP address. 
+No NAT (Network Address Translation) gateway exist between them, and pods can communicate with each other like computers on local area network (LAN). 
+
+--Creating pods from YAML or JSON descriptor
+--Examining YAML descriptor of a POD
+# kubectl get pod <pod-name> -o yaml 
+# kubectl get pod <pod-name> -o json
+
+--A simple YAML descriptor for a pod 
+apiVersion: ver1			#1
+kind: Pod 					#2
+metadata:
+  name: kubia 				#3
+spec: 
+  containers: 
+  - image: luksa/kubia 		#4
+    name: kubia 			#5
+    ports: 
+    - containerPort: 8080 	#6
+      protocol: TCP
+
+#1 Descriptor conforms to version v1 of Kubernetes API
+#2 You’re describing a pod.
+#3 The name of the pod
+#4 Container image to create the container from
+#5 Name of the container
+#6 The port the app is listening on
+
+--Pod detail attribute
+# kubectl explain pods
+# kubectl explain pod.spec
+# kubectl explain pod.metadata
+
+--Using kubectl create to create the pod
+# kubectl create -f <yaml-file>
+  = "kubectl create -f" command is used to create any resource from YAML or JSON
+
+--Viewing application logs 
+# kubectl logs <pod-name>
+# kubectl logs <pod-name> -c <container-name>
+-Container logs are automatically rotated daily and every time the log file reaches 10MB in size. 
+-The kubectl logs command only shows the log entries from the last rotation. 
+
+--Forwarding a local network port to a port in the pod
+-When you want to talk to a specific pod without going through a service, Kubernetes allows you to configure port forwarding to the pod
+# kubectl port-forward <pod-name> <from-port>:<to-port>
+
+
+★ORGANIZING PODS WITH LABELS★
+With microservices architecture, the number of pods can easily exceed 20 or more. Those components may be replicated and multipled accordingly by its release (stable, beta, canary, etc) and also will run concurrently. This lead to hundreds of Pods in the system. We need a way of organizing pods into smaller groups based on arbitrary criteria, so the developer and administrator can easily see which pod is which. 
+
+Organizing pods and all other Kubernetes objects is done through LABELs.
+A label is an arbitrary key-value pair attached to a resource, and utilized when selecting resources using 'label selector'. 
+-app, spesifies which app, component, or microservice the pod belongs to. 
+-rel, shows whether the application running in the pod is a stable, beta, or canary release. 
+※Canary release = when you deploy a new version of an application next to the stable version, but only a parts of users can access the new version (to see how it behaves before rolling it out to all users).
+
+--Specify label to a pod
+apiVersion: ver1
+kind: Pod
+metadata:
+  name: kubia-manual-v2
+  labels: 
+    creation_method: manual 	#1
+    env: prod 					#1
+spec: 
+  containers:
+  - image: famy/kubia
+    name: kubia
+    ports:
+    - containerPort: 8080
+      protocol: TCP
+
+#1 two labels attached to the pod
+labelname = kubia-manual-v2.yaml
+
+--Create pod with label
+# kubectl create -f <pod-yaml>
+# kubectl create -f kubia-manual-v2.yaml
+  = pod "kubia-manual-v2" created
+
+# kubectl get pod --show-labels
+NAME              READY   STATUS    RESTARTS   AGE   LABELS
+kubia-2q9hb       1/1     Running   3          17d   run=kubia
+kubia-manual-v2   1/1     Running   0          10m   creation_method=manual,env=prod
+
+--Modify labels of existing pod
+# kubectl label pod <pod-name> <labelname>=<label-value>
+# kubectl label pod kubia-manual creation_method=manual
+
+--List pod with labels
+# kubectl get pod -L creation_method,app
+NAME              READY   STATUS    RESTARTS   AGE    CREATION_METHOD   APP
+kubia-2q9hb       1/1     Running   3          17d
+kubia-manual      1/1     Running   0          84m                      test
+kubia-manual-v2   1/1     Running   0          111m   manual
+kubia-r7t7b       1/1     Running   1          16h
+
+--List subset with 'label selector'
+A label selector can list pod as:
+-label with certain key only
+-label with key and value
+
+# kubectl get pod -l creation_method --show-labels
+NAME              READY   STATUS    RESTARTS   AGE    LABELS
+kubia-manual-v2   1/1     Running   0          118m   creation_method=manual,env=prod
+
+# kubectl get pod -l creation_method=manual
+NAME              READY   STATUS    RESTARTS   AGE
+kubia-manual-v2   1/1     Running   0          116m
+
+# kubectl get pod -l '!creation_method' --show-labels
+NAME           READY   STATUS    RESTARTS   AGE   LABELS
+kubia-2q9hb    1/1     Running   3          17d   run=kubia
+kubia-manual   1/1     Running   0          91m   app=test,rel=test
+kubia-r7t7b    1/1     Running   1          16h   run=kubia
+
+
+
+
+
+QUESTIONS: 
+-How to expose service to external IP by LoadBalancer
+
+
+https://access.redhat.com/documentation/en-us/openshift_container_platform/4.1/html/logging/configuring-your-cluster-logging-deployment#efk-logging-elasticsearch-limits_efk-logging-elasticsearch
+
+https://access.redhat.com/documentation/en-us/openshift_container_platform/3.11/html/logging
+
+
+
+
+
+
