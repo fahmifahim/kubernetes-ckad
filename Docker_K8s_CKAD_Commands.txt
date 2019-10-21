@@ -165,7 +165,7 @@ The number of instance can be configured in ReplicationController
  
 
 
-★★★PODS: running containers in Kubernetes★★★
+★★★Chap3 PODS: running containers in Kubernetes★★★
 --Flat inter-pod network
 All pods in Kubernetes cluster reside in a single flat, shared, network-address space, which means every pod can access every other pod at other pod's IP address. 
 No NAT (Network Address Translation) gateway exist between them, and pods can communicate with each other like computers on local area network (LAN). 
@@ -283,6 +283,114 @@ NAME           READY   STATUS    RESTARTS   AGE   LABELS
 kubia-2q9hb    1/1     Running   3          17d   run=kubia
 kubia-manual   1/1     Running   0          91m   app=test,rel=test
 kubia-r7t7b    1/1     Running   1          16h   run=kubia
+
+# kubectl get pod -l app,rell
+NAME           READY   STATUS    RESTARTS   AGE   LABELS
+kubia-manual   1/1     Running   0          91m   app=test,rel=test
+
+
+--Using labels for categorizing worker nodes
+# kubectl get nodes --show-labels
+# kubectl label node <node-name> <label-name>=<label-value>
+# kubectl get nodes -l <label-name>=<label-value>
+
+
+--Scheduling pods to specific nodes
+apiVersion: ver1
+kind: Pod
+metadata:
+  name: kubia-gpu
+spec: 
+  nodeSelector:				# 1
+    gpu: "true" 			# 1
+  containers: 
+  - image: luksa/kubia
+    name: kubia
+
+# 1 = nodeSelector tells Kubernetes to deploy this pod only to a certain nodes labeled with gpu=true
+! Don't forget to associates the nodes with label as mentioned before. 
+  # kubectl label node <node-name> gpu=true
+
+--Adding and modifying annotations
+# kubectl annotation pod <pod-name> <annotation>=<value>
+# kubectl annotation pod kubia-manual mycompany.com/someannotation="foo-bar"
+
+
+
+★USING NAMESPACES TO GROUP RESOURCES★
+# kubectl get namespaces
+NAME                   STATUS   AGE
+default                Active   18d
+kube-node-lease        Active   18d
+kube-public            Active   18d
+kube-system            Active   18d
+kubernetes-dashboard   Active   18d
+
+# kubectl get pods -n kube-system
+NAME                               READY   STATUS    RESTARTS   AGE
+coredns-5644d7b6d9-lxf7p           1/1     Running   3          18d
+coredns-5644d7b6d9-rggml           1/1     Running   3          18d
+etcd-minikube                      1/1     Running   3          18d
+
+--Creating namespaces
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: custom-namespace
+
+# kubectl create -f custom-namespace.yaml
+-OR-
+# kubectl create namespace custom-namespace
+
+--Creating pods to specific namespaces
+# kubectl create -f pods-yaml.yaml -n custom-namespace
+
+!! When listing, describing, modifying or deleting objects in other namespaces, you need to pass the --namespace (or -n) flag to kubectl. If you dont, kubectl performs the action in the default namespace configures in the current kubectl context. 
+
+
+
+★STOPPING AND REMOVING PODS★
+--Delete pod by name
+# kubectl delete pod <pod-name>
+
+--Delete pod by label selectors
+# kubectl delete pod -l <label-name>=<value>
+# kubectl delete pod -l creation_method=manual
+
+--Delete pod and namespace
+# kubectl delete namespace <namespace-name>
+# kubectl delete ns custom-namespace
+
+--Delete all pods in a namespace 
+# kubectl delete pod --all
+
+--Delete almost all resources in a namespace
+# kubectl delete all --all
+
+
+
+★★★Chap4 REPLICATION AND OTHER CONTROLLERS: deploying managed pods★★★
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
