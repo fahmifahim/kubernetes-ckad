@@ -253,9 +253,13 @@ NAME              READY   STATUS    RESTARTS   AGE   LABELS
 kubia-2q9hb       1/1     Running   3          17d   run=kubia
 kubia-manual-v2   1/1     Running   0          10m   creation_method=manual,env=prod
 
---Modify labels of existing pod
+--Add labels of existing pod
 # kubectl label pod <pod-name> <labelname>=<label-value>
 # kubectl label pod kubia-manual creation_method=manual
+
+--Modify/overwrite labels 
+# kubectl label pod <pod-name> <existing-label-name>=<new-value> --overwrite
+# kubectl label pod kubia-manual creation_method=auto --overwrite
 
 --List pod with labels
 # kubectl get pod -L creation_method,app
@@ -370,6 +374,86 @@ metadata:
 
 
 ★★★Chap4 REPLICATION AND OTHER CONTROLLERS: deploying managed pods★★★
+--Keeping pods healthy
+Kubernetes will restart pod automatically when an application has a bug causes it to crash. Kubernetes automatically gives it the ability to heal itself. 
+
+--Liveness probes
+a. HTTP GET probe
+HTTP GET request performed on the container's IP, a port and path that specified in advance. If the HTTP response code is 2xx or 3xx the probe is considered successful. 
+b. TCP Socket probe
+Open a TCP connection to the specified port of the container. If the connection successfully established, the probe is success. 
+c. Exec probe
+Execute an arbitrary command inside the container and check the command's exit code. If the return code 0, the probe is success. 
+
+!!For pods running in production, you should always define a liveness probe. 
+!!Keeps probe light, liveness probes should not use too many computational resources and should not take too log to compute. 
+
+Example yaml: 
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: kubia-liveness
+spec: 
+  containers: 
+  - image: luksa/kubia-unhealthy
+    name: kubia
+    livenessProbe: 
+      httpGet:
+        path: /
+        port: 8080
+
+--Obtaining logs from the crashed pods
+# kubectl logs <pod-name> --previous
+
+--Configuring additional properties of the liveness probe
+spec: 
+  containers: 
+  - image: luksa/kubia-unhealthy
+    name: kubia
+    livenessProbe: 
+      httpGet:
+        path: /
+        port: 8080
+      initialDelaySeconds: 15	#1
+#1 : Kubernetes will wait 15 seconds before executing the first probe
+
+
+★REPLICATION CONTROLLER★
+-Replication Controller is a Kubernetes resource that ensure its pods to keep running. If pod dissapear for any reason, the Replication Controller notices the missing pod and creates the replacement pod. 
+
+-Three essential parts of ReplicationController: 
+a. label selector, which determines what pods are in the RC scope
+b. replica count, which specifies the desired number of pod should be running
+c. pod template, which is used to when creating the pod
+
+-Advantages using Replication Controller: 
+a. It makes sure a pod is always running by starting a new pod when an existing one goes down
+b. It creates a replacement replicas for all pods when a cluster node fails, and re-create the pods on the fail node
+c. It enables easy horizontal scaling of pods
+
+--Creating a ReplicationController
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: kubia
+spec:
+  replicas: 3
+  selector:
+    app: kubia
+  template:
+    metadata:
+      labels:
+        app: kubia
+    spec:
+      containers:
+      - name: kubia
+        image: luksa/kubia
+        ports:
+        - containerPort: 8080
+
+
+
+
 
 
 
