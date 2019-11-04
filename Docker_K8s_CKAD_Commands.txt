@@ -576,24 +576,179 @@ NAME                READY   STATUS    RESTARTS   AGE     IP            NODE     
 ssd-monitor-d8hsj   1/1     Running   0          2m32s   172.17.0.15   minikube   <none>           <none>
 
 
+★JOB, resource that perform a single completable task★
+Job resource allows you to run a pod whose container isn't restarted when the process running inside finishes successfully. Once it does, the pod is considered COMPLETE. 
 
+--Defining Job resource (batch-job.yaml)
+apiVersion: batch/v1
+kind: Job
+metadata: 
+  name: batch-job
+spec: 
+  template: 
+    metadata: 
+      labels: 
+        app: batch-job
+    spec: 
+      restartPolicy: OnFailure
+      containers: 
+      - name: main
+        image: luksa/batch-job
+
+# kubectl create -f batch-job.yaml
+# kubectl get pods 
+NAME                READY   STATUS    RESTARTS   AGE
+batch-job-zbqd6     1/1     Running   0          13s
+
+# kubectl logs batch-job-zbqd6
+Mon Nov  4 05:50:39 UTC 2019 Batch job starting
+
+!! The dockerfile for the above Job resource as follow: 
+FROM busybox
+ENTRYPOINT echo "$(date) Batch job starting"; sleep 120; echo "$(date) Finished succesfully"
+
+After 120 seconds, the pod will finish its job and exit successfully: 
+
+# kubectl get pods
+NAME                READY   STATUS      RESTARTS   AGE
+batch-job-zbqd6     0/1     Completed   0          3m23s
+
+# kubectl logs batch-job-zbqd6
+Mon Nov  4 05:50:39 UTC 2019 Batch job starting
+Mon Nov  4 05:52:39 UTC 2019 Finished succesfully
+
+--Running multiple pod instance in a Job
+If you need a Job to run more than once, put the "completions" attribute to the Job yaml definition. 
+
+apiVersion: batch/v1
+kind: Job
+metadata: 
+  name: multi-completion-batch-job
+spec: 
+  completions: 5
+  template: ...
+
+--Running job pods in parallel
+...
+spec: 
+  completions: 5
+  parallelism: 2
+...
+
+--Scaling a Job
+# kubectl scale <job-name> --replicas 3
+
+--Limiting the time allowed for a Job to complete
+You can configure how many times a Job can be retried before it is marked as failed, by specifying the spec.backoffLimit field in the manifest yaml file. The default is 6
+
+
+★CronJob★
+CronJob allows you to schedule jobs to run periodically or once in the future. 
+A cron job in Kubernetes is configured by creating a CronJob resource. 
+
+apiVersion: batch/v1
+kind: CronJob
+metadata: 
+  name: batch-job-every-five-minutes
+spec: 
+  schedule: "*/5 * * * *"
+  jobTemplate: 
+    spec: 
+      template: 
+        metadata: 
+          labels: 
+            app: periodic-batch-job
+        spec: 
+          restartPolicy: OnFailure
+          containers: 
+          - name: main
+            image: luksa/batch-job
+
+--Check the executed jobs
+# kubectl get jobs
+NAME                                      COMPLETIONS   DURATION   AGE
+batch-job-every-five-minutes-1572854460   1/1           2m4s       3m12s
+batch-job-every-five-minutes-1572854580   0/1           72s        72s
 
 
 
 ★★★Chap5 SERVICES: enabling clients to discover and talk to pods★★★
+In the case of microservices, pods will respond to HTTP requests either coming from other pods inside the cluster or from clients outside the cluster.
+In the non-Kubernetes world, sysadmin will configure each client-app by specifying the exact IP or hostname of the server providing the service. But, doing the same in Kubernetes won't work, because: 
+1. Pods are ephemeral
+Pods may come and go at any time due to it is removed, scaled down, or because a cluster node failed. 
+2. Kubernetes assigns an IP to a pod after the pod has been scheduled to a node and before it's started. 
+3. Horizontal scaling means multiple pods may provide the same service. 
+Client shouldnt care how may pods backing the service and what their IPs are. Instead, all those pods should be accessible through a single IP address. 
+
+To solve all the above problems, Kubernetes provide Service resource type. 
+
+★INTRODUCING SERVICES★
+-A Kubernetes Service is a resource you create to make a single, constant point of entry to a group of pods providing the same service. Each service has an IP address and PORT that never change while the service exist. 
+-Label selectors determine which pods belong to the Service. 
+
+Service sample yaml (kubia-svc.yaml)
+apiVersion: v1
+kind: Service
+metadata: 
+  name: kubia-svc
+spec:
+  ports: 
+  - port: 80            #1
+    targetPort: 8080    #2
+  selector: 
+    app: kubia          #3
+
+#1 the port the service will be available on
+#2 the container port the service will forward to 
+#3 All pod with the "app=kubia" label will be part of this service
+
+# kubectl create -f kubia-svc.yaml
+# kubectl get svc 
+NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+kubia-svc    ClusterIP   10.97.237.121   <none>        80/TCP    4m26s
+
+-From the above list, IP address 10.97.237.121 is assigned to the kubia-svc service. This is the cluster IP and only accessible from inside the cluster. The primary purpose of service is to expose group of pods to other pods in the cluster. But ofcourse we can expose the service outside the cluster too. 
+
+-We can send requests to the above service by several ways: 
+1. Create a pod that will send the service's cluster IP and log the response. 
+2. ssh into one of the Kubernetes nodes and use the curl command. 
+3. execute the curl command inside one of existing pods (through kubectl exec)
+
+# kubectl get pods --show-labels
+NAME              READY   STATUS    RESTARTS   AGE     LABELS
+kubia-2qcwd       1/1     Running   1          12d     app=kubia
+kubia-rs-8lvxg    1/1     Running   0          7h22m   app=kubia
+kubia-wzwxs       1/1     Running   1          12d     app=foo
+
+# kubectl exec -it kubia-wzwxs bash
+  root@kubia-wzwxs:/# curl http://10.97.237.121:80
+  You've hit kubia-2qcwd
+
+  root@kubia-wzwxs:/# curl http://10.97.237.121
+  You've hit kubia-rs-8lvxg
+
+  root@kubia-wzwxs:/# exit
+
+# kubectl exec kubia-wzwxs -- curl -s http://10.97.237.121:80
+You've hit kubia-rs-8lvxg
+
+!! The double dash (--) in the command signals the end of command options for kubectl. Everything after the double dash is the command that should be executed inside the pod.
 
 
+★CONNECTING TO SERVICES LIVING OUTSIDE THE CLUSTER★
 
 
+★EXPOSING SERVICES TO EXTERNAL CLUSTER★
 
 
+★EXPOSING SERVICES EXTERNALLY THROUGH AN INGRESS RESOURCE★
 
 
+★SIGNALING WHEN A POD IS READY TO ACCEPT CONNECTIONS★
 
 
-
-
-
+★USING A HEADLESS SERVICE FOR DISCOVERING INDIVIDUAL PODS★
 
 
 
