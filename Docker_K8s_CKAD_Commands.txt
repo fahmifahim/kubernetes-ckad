@@ -451,9 +451,136 @@ spec:
         ports:
         - containerPort: 8080
 
+--Moving pods in and out of the scope of a ReplicationController
+A ReplicationController(RC) manages pods that match its label selector. By changing a pod's labels, it can be removed from or added to the scope of RC. 
+
+# kubectl get rc 
+NAME    DESIRED   CURRENT   READY   AGE
+kubia   3         3         3       12d
+
+# kubectl describe rc kubia | egrep "Selector|Labels"
+Selector:     app=kubia
+Labels:       app=kubia
+  Labels:  app=kubia
+
+# kubectl get pods --show-labels
+NAME              READY   STATUS    RESTARTS   AGE   LABELS
+kubia-2qcwd       1/1     Running   1          12d   app=kubia
+kubia-hs4ml       1/1     Running   1          12d   app=kubia
+kubia-wzwxs       1/1     Running   1          12d   app=kubia
+kubia-manual      1/1     Running   2          14d   app=test,rel=test
+kubia-manual-v2   1/1     Running   2          15d   creation_method=manual,env=prod
+
+# kubectl label pod kubia-wzwxs app=foo --overwrite
+pod/kubia-wzwxs labeled
+
+# kubectl get pods --show-labels
+NAME              READY   STATUS    RESTARTS   AGE   LABELS
+kubia-2qcwd       1/1     Running   1          12d   app=kubia
+kubia-hs4ml       1/1     Running   1          12d   app=kubia
+kubia-6qdc4       1/1     Running   0          20s   app=kubia      # newly created pod (controlled by RC)
+kubia-manual      1/1     Running   2          14d   app=test,rel=test
+kubia-manual-v2   1/1     Running   2          15d   creation_method=manual,env=prod
+kubia-wzwxs       1/1     Running   1          12d   app=foo        # label-changed pod
+
+--Delete a ReplicationController
+When you delete a RC with kubectl delete, the corresponded pods are also deleted. 
+# kubectl delete rc <RC-name>
+
+To delete a RC only and keep its pods can be managed by this command: 
+# kubectl delete rc <RC-name> --cascade=false
+
+
+★REPLICASET★
+ReplicaSet(RS) is a new generation of ReplicationController. It works exactly like a RC, and has more expressive pod selectors. RS can match the pods label or the label-value. 
+
+RS sample yaml(kubia-relicaset.yaml)
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata: 
+  name: kubia-rs
+spec: 
+  replicas: 3
+  selector: 
+    matchLabels: 
+      app: kubia
+    template: 
+      metadata: 
+        labels: 
+          app: kubia
+      spec: 
+        containers: 
+        - name: kubia
+          image: luksa/kubia
+
+# kubectl create -f kubia-replicaset.yaml
+# kubectl get pods --show-labels
+NAME              READY   STATUS    RESTARTS   AGE     LABELS
+kubia-rs-8lvxg    1/1     Running   0          4m51s   app=kubia
+kubia-rs-jzbqk    1/1     Running   0          4m51s   app=kubia
+kubia-rs-tkvqr    1/1     Running   0          4m51s   app=kubia
+
+
+★DAEMONSET -Running exactly one pod on each node-★
+Daemonset create exactly one pod on each node. 
+When a new node is added to the cluster, the Daemonset immediately deploys a new pod instance to it. As well as when a pod is deleted from a node, Daemonset will make sure one pod is created on each node. 
+
+--Using a DaemonSet to run pods only on certain nodes
+A DaemonSet deploys pod on all nodes in the cluster, unless you specify that the pods should only run on a subset of all the nodes. This can be done by specifying the node-Selector property in the pod template. 
+
+!!DaemonSet deploys pod into a node even that node is being made unschedulable (cordoned, preventing pods from being deployed to them). Since the unschedulable attribute is only used by the Scheduler, whereas pods managed by DaemonSet bypass the Scheduler completely.  
+
+DaemonSet (ssd-monitor-daemonset.yaml)
+apiVersion: apps/v1
+kind: DaemonSet
+metadata: 
+  name: ssd-monitor
+spec: 
+  selector: 
+    matchLabel: 
+      app: ssd-monitor
+    template: 
+      metadata: 
+        labels: 
+          app: ssd-monitor
+      spec: 
+        nodeSelector: 
+          disk: ssd
+        containers: 
+        - name: main
+          image: luksa/ssd-monitor
+
+# kubectl get ds
+NAME          DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+ssd-monitor   0         0         0       0            0           disk=ssd        11s
+!!Desired number of DS is 0. Need to check the node-label, that matched the setting "disk=ssd"
+
+# kubectl get nodes --show-labels
+NAME       STATUS   ROLES    AGE   VERSION   LABELS
+minikube   Ready    master   32d   v1.16.0   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=minikube,kubernetes.io/os=linux,node-role.kubernetes.io/master=
+!!"disk=ssd" is not available at the ready node. Need to add manually the label to the node. 
+
+# kubectl label node minikube disk=ssd
+node/minikube labeled
+
+# kubectl get nodes --show-labels
+NAME       STATUS   ROLES    AGE   VERSION   LABELS
+minikube   Ready    master   32d   v1.16.0   disk=ssd,beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=minikube,kubernetes.io/os=linux,node-role.kubernetes.io/master=
+
+# kubectl get ds
+NAME          DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+ssd-monitor   1         1         1       1            1           disk=ssd        3m43s
+
+# kubectl get pods -l app=ssd-monitor -o wide
+NAME                READY   STATUS    RESTARTS   AGE     IP            NODE       NOMINATED NODE   READINESS GATES
+ssd-monitor-d8hsj   1/1     Running   0          2m32s   172.17.0.15   minikube   <none>           <none>
 
 
 
+
+
+
+★★★Chap5 SERVICES: enabling clients to discover and talk to pods★★★
 
 
 
