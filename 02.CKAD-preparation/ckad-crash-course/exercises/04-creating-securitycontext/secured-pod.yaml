@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: secured
+  name: secured
+spec:
+  securityContext: 
+    fsGroup: 3000
+  volumes: 
+  - name: sec-ctx-vol
+    emptyDir: {}
+  containers:
+  - image: nginx
+    name: secured
+    volumeMounts:
+    - name: sec-ctx-vol
+      mountPath: /data/app
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+status: {}

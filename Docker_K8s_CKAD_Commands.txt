@@ -1043,18 +1043,224 @@ spec:
   # env | grep DB_PASSWORD
 
 
+--Security Context 
+-Set Security Context for a Pod 
+apiVersion: v1
+kind: Pod 
+metadata: 
+  name: security-pod-demo 
+spec: 
+  securityContext:      #securityContext for Pod  
+    runAsUser: 1000     #securityContext for Pod 
+    runAsGroup: 3000    #securityContext for Pod 
+    fsGroup: 2000       #securityContext for Pod 
+  volumes:              #securityContext for Pod 
+  - name: sec-ctx-vol   #securityContext for Pod 
+    emptyDir: {}        #securityContext for Pod 
+  containers: 
+  - name: security-container-demo 
+    image: busybox 
+    volumeMounts:           #securityContext for Container 
+    - name: sec-ctx-vol     #securityContext for Container
+      mountPath: /data/demo #securityContext for Container
+
+-runAsUser field specifies that for any Containers in the Pod, all processes run with user ID 1000.
+-runAsGroup field specifies the primary group ID of 3000 for all processes within any containers of the Pod.
+-fsGroup field specified all processes of the container are also part of the supplementary group ID 2000. The owner for volume /data/demo and any files created in that volume will be Group ID 2000.
 
 
+# Exercise 4
+In this exercise, you will create a Pod that defines a filesystem group ID as security context. Based on this security context, you'll create a new file and inspect the outcome of the file creation based on the rule defined earlier.
+
+## Creating a Security Context for a Pod
+1. Create a Pod named `secured` that uses the image `nginx` for a single container. Mount an `emptyDir` volume to the directory `/data/app`.
+2. Files created on the volume should use the filesystem group ID 3000.
+3. Get a shell to the running container and create a new file named `logs.txt` in the directory `/data/app`. List the contents of the directory and write them down.
+
+# Solution 4
+# kubectl run secured --image=nginx --restart=Never -o yaml --dry-run > secured-pod.yaml 
+# vi secured-pod.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: secured
+  name: secured
+spec:
+  containers:
+  - image: nginx
+    name: secured
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+status: {}
+------
+...
+spec: 
+  securityContext: 
+    fsGroup: 3000
+  volumes: 
+  - name: sec-ctx-vol 
+    emptyDir: {}
+  containers: 
+  - image: nginx 
+    name: secured 
+    volumeMounts: 
+    - name: sec-ctx-vol 
+      mountPath: /data/app 
+...
+
+# kubectl create -f secured-pod.yaml 
+# kubectl exec -it secured -- /bin/sh 
+  # cd /data/app
+  # touch logs.txt 
+  # ls -l 
+  total 0
+  -rw-r--r-- 1 root 3000 0 Dec  2 21:34 log.txt
+  # exit 
 
 
+--Resource Boundaries
 
 
+# Exercise 5
+In this exercise, you will create a ResourceQuota with specific CPU and memory limits for a new namespace. Pods created in the namespace will have to adhere to those limits.
+## Defining a Pod’s Resource Requirements
+Create a resource quota named `apps` under the namespace `rq-demo` using the following YAML definition in the file `rq.yaml`.
+
+```yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: app
+spec:
+  hard:
+    pods: "2"
+    requests.cpu: "2"
+    requests.memory: 500m
+```
+
+1. Create a new Pod that exceeds the limits of the resource quota requirements e.g. by defining 1G of memory. Write down the error message.
+2. Change the request limits to fulfill the requirements to ensure that the Pod could be created successfully. Write down the output of the command that renders the used amount of resources for the namespace.
+
+# Solution 5 
+# kubectl create namespace rq-demo 
+# vi rq.yaml 
+apiVersion: v1 
+kind: ResourceQuota 
+metadata: 
+  name: apps
+spec: 
+  hard: 
+    pods: "2"
+    requests.cpu: "2"
+    requests.memory: 500m
+
+# kubectl create -f rq.yaml -n rq-demo 
+# kubectl describe quota -n rq-demo  
+# kubectl run test-pod --image=nginx --restart=Never -o yaml > test-pod.yaml
+# vi test-pod.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: test-pod
+  name: test-pod
+spec:
+  containers:
+  - image: nginx
+    name: test-pod
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+status: {}
+-----(edit to this one:)
+...
+spec: 
+  containers: 
+  - image: nginx 
+    name: test-pod 
+    resources: 
+      requests: 
+        memory: "1G"
+        cpu: "200m"
+-----
+
+# kubectl create -f pod.yaml -n rq-demo 
+Error from server (Forbidden): error when creating "test-pod.yaml": pods "test-pod" is forbidden: exceeded quota: apps, requested: requests.cpu=1G, used: requests.cpu=0, limited: requests.cpu=2
+# vi test-pod.yaml 
+...
+spec: 
+  resources: 
+    requests: 
+      memory: "200m"
+      cpu: "200m"
+...
+
+# kubectl get pods -n rq-demo 
+# kubectl create -f pod.yaml -n rq-demo 
+# kubectl describe quota --namespace=rq-demo 
+Name:            apps
+Namespace:       rq-demo
+Resource         Used  Hard
+--------         ----  ----
+pods             1     2
+requests.cpu     200m  2
+requests.memory  200m  200m
 
 
+--Service Account
+When you (a human) access the cluster (for example, using kubectl), you are authenticated by the apiserver as a particular User Account (currently this is usually admin, unless your cluster administrator has customized your cluster). Processes in containers inside pods can also contact the apiserver. When they do, they are authenticated as a particular Service Account (for example, default).
+When you create a pod, if you do not specify a service account, it is automatically assigned the default service account in the same namespace.
 
+# Exercise 6
+In this exercise, you will create a ServiceAccount and assign it to a Pod.
+## Using a ServiceAccount
+1. Create a new service account named `backend-team`.
+2. Print out the token for the service account in YAML format.
+3. Create a Pod named `backend` that uses the image `nginx` and the identity `backend-team` for running processes.
+4. Get a shell to the running container and print out the token of the service account.
 
+# Solution 6 
+# kubectl create serviceaccount backend-team 
+# kubectl get serviceaccount backend-team -o yaml --export 
+→ --export # Get a resource's YAML without cluster specific information
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  name: backend-team
+  selfLink: /api/v1/namespaces/default/serviceaccounts/backend-team
+secrets:
+- name: backend-team-token-7qxd8
 
+# kubectl run backend --image=nginx --restart=Never -o yaml --dry-run > backend-pod.yaml 
+# vi backend-pod.yaml 
+...
+spec: 
+  serviceAccountName: backend-team
+...
+# kubectl create -f backend-pod.yaml 
+# kubectl get pod backend -o yaml | less 
+  → find the serviceaccount's secret name: backend-team-token-7qxd8
+  → it should be somewhere here: 
+  volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: backend-team-token-7qxd8
+      readOnly: true
+# kubectl exec -it backend -- /bin/sh 
+  # ls /var/run/secrets/kubernetes.io/serviceaccount
+  # cat token
 
+--or--
+# kubectl run backend2 --image=nginx --restart=Never --serviceaccount=backend-team 
+# kubectl get pod 
+# kubectl exec -it backend2 -- /bin/sh 
+  # cd /var/run/secrets/kubernetes.io/serviceaccount
+  # ls -l 
+  # cat token 
 
 
 
