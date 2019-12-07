@@ -1,10 +1,5 @@
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-
 # CKAD CRASH COURSE
-
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+CKAD exam preparation and practices
 
 --Documentation: 
 https://kubernetes.io/docs/reference/kubectl/cheatsheet/
@@ -115,7 +110,8 @@ In this exercise, you will practice the creation of a new Pod in a namespace. On
 9. Render the logs of Pod `mypod`.
 10. Delete the Pod and the namespace.
 
-# Solution 1 
+<details>## Solution 1 
+```bash
 $ kubectl create namespace ckad-prep 
 $ kubectl get ns | grep ckad-prep 
 $ kubectl run mypod --image=nginx:2.3.5 --port=80 --namespace=ckad-prep --restart=Never
@@ -140,7 +136,8 @@ $ kubectl run busybox --image=busybox --rm -it --restart=Never --namespace=ckad-
 $ kubectl logs mypod -n ckad-prep 
 $ kubectl delete pod mypod -n ckad-prep --grace-period=0 --force
 $ kubectl delete namespace ckad-prep 
-
+```
+</details>
 
 --Centralized Configuration Data 
 -Creating ConfigMap (Imperative)
