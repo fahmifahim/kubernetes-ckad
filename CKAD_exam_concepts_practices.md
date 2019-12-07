@@ -1,5 +1,5 @@
-# CKAD CRASH COURSE
-CKAD exam preparation and practices
+# CKAD EXAM PREPARATION 
+Understand the CKAD concept, prepare for the exam and practice, practice practices!
 
 ### Documentation: 
 https://kubernetes.io/docs/reference/kubectl/cheatsheet/
