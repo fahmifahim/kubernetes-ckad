@@ -30,9 +30,10 @@ $ kubectl config set-context <context-of-question> --namespace=<namespace-of-que
 ```
 ### Deleting Kubernetes Objects 
 Deleting object may take time, to save your time during the exam, don't wait for a graceful deletion of objects, just kill it!
+```bash
 $ kubectl delete pod <pod-name> --grace-period=0 --force
 useful flag: --grace-period=0 --force
-
+```
 ### Understand and Practice bash 
 ```bash
 $ if [ ! -d ~/tmp ]; then mkdir -p ~/tmp; fi; while true; do echo $(date) >> ~/tmp/date.txt; sleep 5; done; 
@@ -40,15 +41,15 @@ $ while true; do kubectl get pods | grep docker-regist; sleep 3; done;
 ```
 ### Object Management
 -Imperative method : kubernetes
-> fast but requires detailed knowledge, no track record  
+fast but requires detailed knowledge, no track record  
 ```bash
 $ kubectl create namespace ckad
 $ kubectl run nginx --image=nginx --restart=Never -n ckad 
 ```
 -Declarative method: yaml
-> Suitable for more elaborate changes, tracks changes 
+Suitable for more elaborate changes, tracks changes 
 -Hybrid approach
->Generate YAML file with kubectl
+Generate YAML file with kubectl
 ```bash
 $ kubectl run nginx --image=nginx --restart=Never --dry-run -o yaml > nginx-pod.yaml 
 $ vim nginx-pod.yaml 
@@ -121,7 +122,9 @@ In this exercise, you will practice the creation of a new Pod in a namespace. On
 9. Render the logs of Pod `mypod`.
 10. Delete the Pod and the namespace.
 
-<details><summary>## Solution 1 </summary>
+<details><summary> Solution 1 </summary>
+<p>
+
 ```bash
 $ kubectl create namespace ckad-prep 
 $ kubectl get ns | grep ckad-prep 
@@ -148,6 +151,7 @@ $ kubectl logs mypod -n ckad-prep
 $ kubectl delete pod mypod -n ckad-prep --grace-period=0 --force
 $ kubectl delete namespace ckad-prep 
 ```
+</p>
 </details>
 
 ### Centralized Configuration Data 
