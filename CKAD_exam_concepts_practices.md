@@ -241,9 +241,11 @@ metadata:
 type: Opaque 
 data: 
   pwd: czNjcmUh=
+
 ```
 
 ### Using Secret as Files from a Pod
+
 ```bash
 apiVersion: v1
 kind: Pod
@@ -261,9 +263,11 @@ spec:
   - name: foo                   $ secret in pod 
     secret:                     $ secret in pod 
       secretName: mysecret      $ secret in pod 
+
 ```
 
 ### Using Secret as Environment Variables 
+
 ```bash
 apiVersion: v1 
 kind: Pod 
@@ -285,6 +289,7 @@ spec:
             name: mysecret
             key: password 
   restartPolicy: Never
+
 ```
 
 
@@ -297,8 +302,10 @@ In this exercise, you will first create a Secret from literal values. Next, you'
 3. Shell into the Pod and print out the created environment variables. You should find `DB_PASSWORD` variable.
 4. (Optional) Discuss: What is one of the benefit of using a Secret over a ConfigMap?
 
-<details><summary># Solution 3 </summary>
+<details><summary>Solution 3 </summary>
+<p>
 
+```bash
 $ kubectl create secret generic db-credentials --from-literal=db-password=passwd
 $ kubectl get secrets 
 $ kubectl run backend --image=nginx --restart=Never -o yaml --dry-run > backend-pod.yaml 
@@ -321,6 +328,8 @@ $ kubectl get pod
 $ kubectl exec -it backend -- /bin/sh 
   $ env | grep DB_PASSWORD
 
+```
+</p>
 </details>
 
 ### Security Context 
@@ -357,7 +366,10 @@ In this exercise, you will create a Pod that defines a filesystem group ID as se
 2. Files created on the volume should use the filesystem group ID 3000.
 3. Get a shell to the running container and create a new file named `logs.txt` in the directory `/data/app`. List the contents of the directory and write them down.
 
-<details><summary># Solution 4</summary>
+<details><summary>Solution 4</summary>
+<p>
+
+```bash
 $ kubectl run secured --image=nginx --restart=Never -o yaml --dry-run > secured-pod.yaml 
 $ vi secured-pod.yaml 
 apiVersion: v1
@@ -399,6 +411,9 @@ $ kubectl exec -it secured -- /bin/sh
   total 0
   -rw-r--r-- 1 root 3000 0 Dec  2 21:34 log.txt
   $ exit 
+
+```
+</p>
 </details>
 
 ### Resource Boundaries
@@ -424,7 +439,10 @@ spec:
 1. Create a new Pod that exceeds the limits of the resource quota requirements e.g. by defining 1G of memory. Write down the error message.
 2. Change the request limits to fulfill the requirements to ensure that the Pod could be created successfully. Write down the output of the command that renders the used amount of resources for the namespace.
 
-<details><summary># Solution 5 </summary>
+<details><summary>Solution 5 </summary>
+<p>
+
+```
 $ kubectl create namespace rq-demo 
 $ vi rq.yaml 
 apiVersion: v1 
@@ -489,6 +507,9 @@ Resource         Used  Hard
 pods             1     2
 requests.cpu     200m  2
 requests.memory  200m  200m
+
+```
+</p>
 </details>
 
 ### Service Account
@@ -503,7 +524,10 @@ $$ Using a ServiceAccount
 3. Create a Pod named `backend` that uses the image `nginx` and the identity `backend-team` for running processes.
 4. Get a shell to the running container and print out the token of the service account.
 
-<details><summary># Solution 6 </summary>
+<details><summary>Solution 6 </summary>
+<p>
+
+```bash
 $ kubectl create serviceaccount backend-team 
 $ kubectl get serviceaccount backend-team -o yaml --export 
 → --export $ Get a resource's YAML without cluster specific information
@@ -541,6 +565,8 @@ $ kubectl exec -it backend2 -- /bin/sh
   $ cd /var/run/secrets/kubernetes.io/serviceaccount
   $ ls -l 
   $ cat token 
+```
+</p>
 </details>
 
 ### Multi-container Pod 
@@ -566,7 +592,10 @@ Kubernetes runs an init container before the main container. In this scenario, t
 5. Run the command `curl localhost:8080` from the main application container. The response should render a database URL derived off the information in the configuration file.
 6. (Optional) Discuss: How would you approach a debugging a failing command inside of the init container?
 
-<details><summary># Solution 7 (InitContainer)</summary>
+<details><summary>Solution 7 (InitContainer)</summary>
+<p>
+
+```bash
 $ kubectl run business-app --image=bmuschko/nodejs-read-config:1.0.0 --port=8080 --restart=Never -o yaml --dry-run > business-app.yaml 
 $ vi business-app.yaml 
 (before)
@@ -630,6 +659,8 @@ $ kubectl exec -it business-app --container web -- /bin/sh
   $ curl localhost:8080
   Database URL: localhost:5432/customers
   $ exit 
+```
+</p>
 </details>
 
 # Exercise 8
