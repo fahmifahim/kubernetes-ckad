@@ -159,7 +159,7 @@ $ kubectl delete namespace ckad-prep
 (Literal values)
 ```bash
 $ kubectl create configmap db-config ¥
-  --from-literal=db=staging 
+  --from-literal=db=staging ¥
   --from-literal=username=jdoe
 
 (Single file with environment variables)
@@ -167,7 +167,7 @@ $ kubectl create configmap db-config --from-env-file=config.env
 
 (File or directory)
 $ kubectl create configmap db-config ¥
-  --from-file=config.txt
+  --from-file=config.txt ¥
   --from-file=config-data.txt
 ```
 -Creating ConfigMap (Declarative)
@@ -193,7 +193,8 @@ In this exercise, you will first create a ConfigMap from predefined values in a 
 4. Shell into the Pod and print out the created environment variables. You should find `DB_URL` and `DB_USERNAME` with their appropriate values.
 5. (Optional) Discuss: How would you approach hot reloading of values defined by a ConfigMap consumed by an application running in Pod?01234567:02-creating-using-configmap fahmi$
 
-<details><summary># Solution 2</summary>
+<details><summary>Solution 2</summary>
+<p>
 ```bash
 $ vim config.txt 
   DB_URL=localhost:3306
@@ -214,6 +215,7 @@ $ kubectl create -f pod.yaml
 $ kubectl get pods | grep backend 
 $ kubectl exec -it backend -- env | grep DB_
 ```
+</p>
 </details>
 
 ### Creating Secrets(Imperative)
