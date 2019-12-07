@@ -1,44 +1,44 @@
 # CKAD CRASH COURSE
 CKAD exam preparation and practices
 
-###Documentation: 
+### Documentation: 
 https://kubernetes.io/docs/reference/kubectl/cheatsheet/
 https://matthewpalmer.net/kubernetes-app-developer/$purchase-the-ebook
 https://github.com/dgkanatsios/CKAD-exercises
 
-###Video Tutorial (Oreilly):
+### Video Tutorial (Oreilly):
 Benjamin Muschko
 https://learning.oreilly.com/live-training/courses/certified-kubernetes-application-developer-crash-course-ckad/0636920329176/
 
 Sander Van Vught
 https://learning.oreilly.com/live-training/courses/certified-kubernetes-application-developer-ckad-crash-course/0636920318439/
 
-###Time Management: 
+### Time Management: 
 19 Problems in 2 hours. Use your time wisely!
 There might be weight of point for specific questions. 
 
-###Using Alias for kubectl 
+### Using Alias for kubectl 
 ```bash
 $ alias k=kubectl 
 $ k version 
 Client Version: version.Info{Major:"1", Minor:"12", GitVersion:"v1.12.2", GitCommit:"17c77c7898218073f14c8d573582e8d2313dc740", GitTreeState:"clean", BuildDate:"2018-10-24T06:54:59Z", GoVersion:"go1.10.4", Compiler:"gc", Platform:"darwin/amd64"}
 Server Version: version.Info{Major:"1", Minor:"16", GitVersion:"v1.16.2", GitCommit:"c97fe5036ef3df2967d086711e6c0c405941e14b", GitTreeState:"clean", BuildDate:"2019-10-15T19:09:08Z", GoVersion:"go1.12.10", Compiler:"gc", Platform:"linux/amd64"}
 ```
-###Setting Context & Namespace 
+### Setting Context & Namespace 
 ```bash
 $ kubectl config set-context <context-of-question> --namespace=<namespace-of-question>
 ```
-###Deleting Kubernetes Objects 
+### Deleting Kubernetes Objects 
 Deleting object may take time, to save your time during the exam, don't wait for a graceful deletion of objects, just kill it!
 $ kubectl delete pod <pod-name> --grace-period=0 --force
 useful flag: --grace-period=0 --force
 
-###Understand and Practice bash 
+### Understand and Practice bash 
 ```bash
 $ if [ ! -d ~/tmp ]; then mkdir -p ~/tmp; fi; while true; do echo $(date) >> ~/tmp/date.txt; sleep 5; done; 
 $ while true; do kubectl get pods | grep docker-regist; sleep 3; done; 
 ```
-###Object Management
+### Object Management
 -Imperative method : kubernetes
 > fast but requires detailed knowledge, no track record  
 ```bash
@@ -54,14 +54,14 @@ $ kubectl run nginx --image=nginx --restart=Never --dry-run -o yaml > nginx-pod.
 $ vim nginx-pod.yaml 
 $ kubectl apply -f nginx-pod.yaml 
 ```
-###Pod life cycle
+### Pod life cycle
     -Pending
     -Running
     -Succeeded
     -Failed 
     -Unknown 
 
-###Inspecting a Pod's status: 
+### Inspecting a Pod's status: 
 -Get current status and event logs: 
 ```bash
 $ kubectl describe pods <pod-name> | grep Status:
@@ -70,7 +70,7 @@ $ kubectl describe pods <pod-name> | grep Status:
 ```bash
 $ kubectl get pods <pod-name> -o yaml | grep phase 
 ```
-###Configuring Env. Variables
+### Configuring Env. Variables
 Injecting runtime behaviour
 ```bash
 apiVersion: v1 
@@ -85,7 +85,7 @@ spec:
     - name: SPRING_PROFILES_ACTIVE    $ Added this 
       value: production               $ Added this 
 ```
-###Commands and Arguments
+### Commands and Arguments
 Running a command inside of container
 ```bash
 apiVersion: v1 
@@ -101,7 +101,7 @@ spec:
     - -c                  $ Added this 
     - echo hello world    $ Added this 
 ```
-###Other Useful kubectl commands 
+### Other Useful kubectl commands 
 ```bash
 $ kubectl logs <pod-name> 
 $ kubectl exec -it <pod-name> -- /bin/sh 
@@ -121,7 +121,7 @@ In this exercise, you will practice the creation of a new Pod in a namespace. On
 9. Render the logs of Pod `mypod`.
 10. Delete the Pod and the namespace.
 
-<details>## Solution 1 
+<details><summary>## Solution 1 </summary>
 ```bash
 $ kubectl create namespace ckad-prep 
 $ kubectl get ns | grep ckad-prep 
@@ -150,7 +150,7 @@ $ kubectl delete namespace ckad-prep
 ```
 </details>
 
-###Centralized Configuration Data 
+### Centralized Configuration Data 
 -Creating ConfigMap (Imperative)
 (Literal values)
 ```bash
@@ -189,7 +189,7 @@ In this exercise, you will first create a ConfigMap from predefined values in a 
 4. Shell into the Pod and print out the created environment variables. You should find `DB_URL` and `DB_USERNAME` with their appropriate values.
 5. (Optional) Discuss: How would you approach hot reloading of values defined by a ConfigMap consumed by an application running in Pod?01234567:02-creating-using-configmap fahmi$
 
-<details># Solution 2
+<details><summary># Solution 2</summary>
 ```bash
 $ vim config.txt 
   DB_URL=localhost:3306
@@ -212,7 +212,7 @@ $ kubectl exec -it backend -- env | grep DB_
 ```
 </details>
 
-###Creating Secrets(Imperative)
+### Creating Secrets(Imperative)
 ```bash
 $ kubectl create secret generic db-creds ¥
   --from-literal=pwd=s3cre!
@@ -235,7 +235,7 @@ data:
   pwd: czNjcmUh=
 ```
 
-###Using Secret as Files from a Pod
+### Using Secret as Files from a Pod
 ```bash
 apiVersion: v1
 kind: Pod
@@ -255,7 +255,7 @@ spec:
       secretName: mysecret      $ secret in pod 
 ```
 
-###Using Secret as Environment Variables 
+### Using Secret as Environment Variables 
 ```bash
 apiVersion: v1 
 kind: Pod 
@@ -289,7 +289,7 @@ In this exercise, you will first create a Secret from literal values. Next, you'
 3. Shell into the Pod and print out the created environment variables. You should find `DB_PASSWORD` variable.
 4. (Optional) Discuss: What is one of the benefit of using a Secret over a ConfigMap?
 
-<details># Solution 3 
+<details><summary># Solution 3 </summary>
 
 $ kubectl create secret generic db-credentials --from-literal=db-password=passwd
 $ kubectl get secrets 
@@ -315,7 +315,7 @@ $ kubectl exec -it backend -- /bin/sh
 
 </details>
 
-###Security Context 
+### Security Context 
 -Set Security Context for a Pod 
 apiVersion: v1
 kind: Pod 
@@ -349,7 +349,7 @@ In this exercise, you will create a Pod that defines a filesystem group ID as se
 2. Files created on the volume should use the filesystem group ID 3000.
 3. Get a shell to the running container and create a new file named `logs.txt` in the directory `/data/app`. List the contents of the directory and write them down.
 
-<details># Solution 4
+<details><summary># Solution 4</summary>
 $ kubectl run secured --image=nginx --restart=Never -o yaml --dry-run > secured-pod.yaml 
 $ vi secured-pod.yaml 
 apiVersion: v1
@@ -393,7 +393,7 @@ $ kubectl exec -it secured -- /bin/sh
   $ exit 
 </details>
 
-###Resource Boundaries
+### Resource Boundaries
 
 # Exercise 5
 In this exercise, you will create a ResourceQuota with specific CPU and memory limits for a new namespace. Pods created in the namespace will have to adhere to those limits.
@@ -416,7 +416,7 @@ spec:
 1. Create a new Pod that exceeds the limits of the resource quota requirements e.g. by defining 1G of memory. Write down the error message.
 2. Change the request limits to fulfill the requirements to ensure that the Pod could be created successfully. Write down the output of the command that renders the used amount of resources for the namespace.
 
-<details># Solution 5 
+<details><summary># Solution 5 </summary>
 $ kubectl create namespace rq-demo 
 $ vi rq.yaml 
 apiVersion: v1 
@@ -483,7 +483,7 @@ requests.cpu     200m  2
 requests.memory  200m  200m
 </details>
 
-###Service Account
+### Service Account
 When you (a human) access the cluster (for example, using kubectl), you are authenticated by the apiserver as a particular User Account (currently this is usually admin, unless your cluster administrator has customized your cluster). Processes in containers inside pods can also contact the apiserver. When they do, they are authenticated as a particular Service Account (for example, default).
 When you create a pod, if you do not specify a service account, it is automatically assigned the default service account in the same namespace.
 
@@ -495,7 +495,7 @@ $$ Using a ServiceAccount
 3. Create a Pod named `backend` that uses the image `nginx` and the identity `backend-team` for running processes.
 4. Get a shell to the running container and print out the token of the service account.
 
-<details># Solution 6 
+<details><summary># Solution 6 </summary>
 $ kubectl create serviceaccount backend-team 
 $ kubectl get serviceaccount backend-team -o yaml --export 
 → --export $ Get a resource's YAML without cluster specific information
@@ -535,7 +535,7 @@ $ kubectl exec -it backend2 -- /bin/sh
   $ cat token 
 </details>
 
-###Multi-container Pod 
+### Multi-container Pod 
 https://blog.nillsf.com/index.php/2019/07/28/ckad-series-part-4-multi-container-pods/
 1. Sidecar container 
 adds functionality to your application that could be included in the main container. By hosting this logic in a sidecar, you can keep that functionality out of your main application and evolve that independently from the actual application.
@@ -558,7 +558,7 @@ Kubernetes runs an init container before the main container. In this scenario, t
 5. Run the command `curl localhost:8080` from the main application container. The response should render a database URL derived off the information in the configuration file.
 6. (Optional) Discuss: How would you approach a debugging a failing command inside of the init container?
 
-<details># Solution 7 (InitContainer)
+<details><summary># Solution 7 (InitContainer)</summary>
 $ kubectl run business-app --image=bmuschko/nodejs-read-config:1.0.0 --port=8080 --restart=Never -o yaml --dry-run > business-app.yaml 
 $ vi business-app.yaml 
 (before)
