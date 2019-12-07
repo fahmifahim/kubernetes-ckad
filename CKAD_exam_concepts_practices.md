@@ -73,7 +73,7 @@ $ kubectl get pods <pod-name> -o yaml | grep phase
 ```
 ### Configuring Env. Variables
 Injecting runtime behaviour
-```bash
+```yaml
 apiVersion: v1 
 kind: Pod 
 metadata: 
@@ -88,7 +88,7 @@ spec:
 ```
 ### Commands and Arguments
 Running a command inside of container
-```bash
+```yaml
 apiVersion: v1 
 kind: Pod 
 metadata: 
@@ -171,7 +171,7 @@ $ kubectl create configmap db-config ¥
   --from-file=config-data.txt
 ```
 -Creating ConfigMap (Declarative)
-```bash 
+```yaml 
 apiVersion: v1 
 kind: ConfigMap 
 metadata: 
