@@ -355,7 +355,9 @@ spec:
       mountPath: /data/demo $securityContext for Container
 ```
 -runAsUser field specifies that for any Containers in the Pod, all processes run with user ID 1000.
+
 -runAsGroup field specifies the primary group ID of 3000 for all processes within any containers of the Pod.
+
 -fsGroup field specified all processes of the container are also part of the supplementary group ID 2000. The owner for volume /data/demo and any files created in that volume will be Group ID 2000.
 
 
