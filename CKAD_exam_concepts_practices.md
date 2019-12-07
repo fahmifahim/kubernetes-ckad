@@ -1,12 +1,14 @@
 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-CKAD CRASH COURSE
+
+# CKAD CRASH COURSE
+
 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
 --Documentation: 
 https://kubernetes.io/docs/reference/kubectl/cheatsheet/
-https://matthewpalmer.net/kubernetes-app-developer/#purchase-the-ebook
+https://matthewpalmer.net/kubernetes-app-developer/$purchase-the-ebook
 https://github.com/dgkanatsios/CKAD-exercises
 
 --Video Tutorial (Oreilly):
@@ -21,35 +23,35 @@ https://learning.oreilly.com/live-training/courses/certified-kubernetes-applicat
 There might be weight of point for specific questions. 
 
 --Using Alias for kubectl 
-# alias k=kubectl 
-# k version 
+$ alias k=kubectl 
+$ k version 
 Client Version: version.Info{Major:"1", Minor:"12", GitVersion:"v1.12.2", GitCommit:"17c77c7898218073f14c8d573582e8d2313dc740", GitTreeState:"clean", BuildDate:"2018-10-24T06:54:59Z", GoVersion:"go1.10.4", Compiler:"gc", Platform:"darwin/amd64"}
 Server Version: version.Info{Major:"1", Minor:"16", GitVersion:"v1.16.2", GitCommit:"c97fe5036ef3df2967d086711e6c0c405941e14b", GitTreeState:"clean", BuildDate:"2019-10-15T19:09:08Z", GoVersion:"go1.12.10", Compiler:"gc", Platform:"linux/amd64"}
 
 --Setting Context & Namespace 
-# kubectl config set-context <context-of-question> --namespace=<namespace-of-question>
+$ kubectl config set-context <context-of-question> --namespace=<namespace-of-question>
 
 --Deleting Kubernetes Objects 
 Deleting object may take time, to save your time during the exam, don't wait for a graceful deletion of objects, just kill it!
-# kubectl delete pod <pod-name> --grace-period=0 --force
+$ kubectl delete pod <pod-name> --grace-period=0 --force
 useful flag: --grace-period=0 --force
 
 --Understand and Practice bash 
-# if [ ! -d ~/tmp ]; then mkdir -p ~/tmp; fi; while true; do echo $(date) >> ~/tmp/date.txt; sleep 5; done; 
-# while true; do kubectl get pods | grep docker-regist; sleep 3; done; 
+$ if [ ! -d ~/tmp ]; then mkdir -p ~/tmp; fi; while true; do echo $(date) >> ~/tmp/date.txt; sleep 5; done; 
+$ while true; do kubectl get pods | grep docker-regist; sleep 3; done; 
 
 --Object Management
 -Imperative method : kubernetes
 > fast but requires detailed knowledge, no track record  
-# kubectl create namespace ckad
-# kubectl run nginx --image=nginx --restart=Never -n ckad 
+$ kubectl create namespace ckad
+$ kubectl run nginx --image=nginx --restart=Never -n ckad 
 -Declarative method: yaml
 > Suitable for more elaborate changes, tracks changes 
 -Hybrid approach
 >Generate YAML file with kubectl
-# kubectl run nginx --image=nginx --restart=Never --dry-run -o yaml > nginx-pod.yaml 
-# vim nginx-pod.yaml 
-# kubectl apply -f nginx-pod.yaml 
+$ kubectl run nginx --image=nginx --restart=Never --dry-run -o yaml > nginx-pod.yaml 
+$ vim nginx-pod.yaml 
+$ kubectl apply -f nginx-pod.yaml 
 
 --Pod life cycle
 -Pending
@@ -60,10 +62,10 @@ useful flag: --grace-period=0 --force
 
 --Inspecting a Pod's status: 
 -Get current status and event logs: 
-# kubectl describe pods <pod-name> | grep Status:
+$ kubectl describe pods <pod-name> | grep Status:
 
 -Get current lifecycle phase: 
-# kubectl get pods <pod-name> -o yaml | grep phase 
+$ kubectl get pods <pod-name> -o yaml | grep phase 
 
 --Configuring Env. Variables
 Injecting runtime behaviour
@@ -75,9 +77,9 @@ spec:
   containers: 
   - image: bmuchko/spring-boot-app:1.5.3
     name: spring-boot-app 
-    env:                              # Added this 
-    - name: SPRING_PROFILES_ACTIVE    # Added this 
-      value: production               # Added this 
+    env:                              $ Added this 
+    - name: SPRING_PROFILES_ACTIVE    $ Added this 
+      value: production               $ Added this 
 
 --Commands and Arguments
 Running a command inside of container
@@ -89,14 +91,14 @@ spec:
   containers: 
   - image: nginx:latest 
     name: nginx 
-    args:                 # Added this 
-    - /bin/sh             # Added this 
-    - -c                  # Added this 
-    - echo hello world    # Added this 
+    args:                 $ Added this 
+    - /bin/sh             $ Added this 
+    - -c                  $ Added this 
+    - echo hello world    $ Added this 
 
 --Other Useful kubectl commands 
-# kubectl logs <pod-name> 
-# kubectl exec -it <pod-name> -- /bin/sh 
+$ kubectl logs <pod-name> 
+$ kubectl exec -it <pod-name> -- /bin/sh 
 
 
 # Exercise 1
@@ -114,44 +116,44 @@ In this exercise, you will practice the creation of a new Pod in a namespace. On
 10. Delete the Pod and the namespace.
 
 # Solution 1 
-# kubectl create namespace ckad-prep 
-# kubectl get ns | grep ckad-prep 
-# kubectl run mypod --image=nginx:2.3.5 --port=80 --namespace=ckad-prep --restart=Never
-# kubectl describe pod mypod -n ckad-prep | tee pod-error.txt 
+$ kubectl create namespace ckad-prep 
+$ kubectl get ns | grep ckad-prep 
+$ kubectl run mypod --image=nginx:2.3.5 --port=80 --namespace=ckad-prep --restart=Never
+$ kubectl describe pod mypod -n ckad-prep | tee pod-error.txt 
 → Error happened since the image can't be pulled (specified tag of the image doesn't exist)
-# kubectl edit pod mypod -n ckad-prep 
+$ kubectl edit pod mypod -n ckad-prep 
 → change this line to 
   image: nginx:1.15.12
-# kubectl get pod -n ckad-prep 
-# kubectl exec -it mypod -n ckad-prep -- /bin/sh 
-  # ls (inside the pod)
-  # exit 
-# kubectl get pods -n ckad-prep -o wide | grep mypod 
+$ kubectl get pod -n ckad-prep 
+$ kubectl exec -it mypod -n ckad-prep -- /bin/sh 
+  $ ls (inside the pod)
+  $ exit 
+$ kubectl get pods -n ckad-prep -o wide | grep mypod 
 mypod   1/1     Running   0          93m   172.17.0.14   minikube   <none>           <none>
-# kubectl run busybox --image=busybox --rm -it --restart=Never --namespace=ckad-prep -- /bin/sh 
-  # (enter the busybox pod)
-  # wget 172.17.0.14:80
-  # (index.html created)
-  # (or execute this command to display the result) wget -O- 172.17.0.14:80
-  # exit 
-  # (busybox pod will be deleted automatically)
-# kubectl logs mypod -n ckad-prep 
-# kubectl delete pod mypod -n ckad-prep --grace-period=0 --force
-# kubectl delete namespace ckad-prep 
+$ kubectl run busybox --image=busybox --rm -it --restart=Never --namespace=ckad-prep -- /bin/sh 
+  $ (enter the busybox pod)
+  $ wget 172.17.0.14:80
+  $ (index.html created)
+  $ (or execute this command to display the result) wget -O- 172.17.0.14:80
+  $ exit 
+  $ (busybox pod will be deleted automatically)
+$ kubectl logs mypod -n ckad-prep 
+$ kubectl delete pod mypod -n ckad-prep --grace-period=0 --force
+$ kubectl delete namespace ckad-prep 
 
 
 --Centralized Configuration Data 
 -Creating ConfigMap (Imperative)
 (Literal values)
-# kubectl create configmap db-config ¥
+$ kubectl create configmap db-config ¥
   --from-literal=db=staging 
   --from-literal=username=jdoe
 
 (Single file with environment variables)
-# kubectl create configmap db-config --from-env-file=config.env 
+$ kubectl create configmap db-config --from-env-file=config.env 
 
 (File or directory)
-# kubectl create configmap db-config ¥
+$ kubectl create configmap db-config ¥
   --from-file=config.txt
   --from-file=config-data.txt
 
@@ -178,12 +180,12 @@ In this exercise, you will first create a ConfigMap from predefined values in a 
 5. (Optional) Discuss: How would you approach hot reloading of values defined by a ConfigMap consumed by an application running in Pod?01234567:02-creating-using-configmap fahmi$
 
 # Solution 2
-# vim config.txt 
+$ vim config.txt 
   DB_URL=localhost:3306
   DB_USERNAME=postgres 
-# kubectl create configmap db-config --from-env-file=config.txt
-# kubectl run backend --image=nginx --restart=Never -o yaml --dry-run > pod.yaml 
-# vi pod.yaml 
+$ kubectl create configmap db-config --from-env-file=config.txt
+$ kubectl run backend --image=nginx --restart=Never -o yaml --dry-run > pod.yaml 
+$ vi pod.yaml 
   ...
   spec: 
     containers: 
@@ -193,22 +195,22 @@ In this exercise, you will first create a ConfigMap from predefined values in a 
         - configMapRef: 
             name: db-config 
   ...
-# kubectl create -f pod.yaml 
-# kubectl get pods | grep backend 
-# kubectl exec -it backend -- env | grep DB_
+$ kubectl create -f pod.yaml 
+$ kubectl get pods | grep backend 
+$ kubectl exec -it backend -- env | grep DB_
 
 
 --Creating Secrets(Imperative)
-# kubectl create secret generic db-creds ¥
+$ kubectl create secret generic db-creds ¥
   --from-literal=pwd=s3cre!
-# kubectl create secret generic db-creds ¥
+$ kubectl create secret generic db-creds ¥
   --from-env-file=secret.env 
-# kubectl create secret generic db-creds ¥
+$ kubectl create secret generic db-creds ¥
   --from-file=username.txt 
   --from-file=password.txt 
 
 -Value has to be base64-encoded manually 
-# echo -n 's3cre!' | base64 
+$ echo -n 's3cre!' | base64 
 czNjcmUh=
 
 apiVersion: v1 
@@ -228,14 +230,14 @@ spec:
   containers:
   - name: mypod
     image: redis
-    volumeMounts:               # secret in pod 
-    - name: foo                 # secret in pod 
-      mountPath: "/etc/foo"     # secret in pod 
-      readOnly: true            # secret in pod 
-  volumes:                      # secret in pod 
-  - name: foo                   # secret in pod 
-    secret:                     # secret in pod 
-      secretName: mysecret      # secret in pod 
+    volumeMounts:               $ secret in pod 
+    - name: foo                 $ secret in pod 
+      mountPath: "/etc/foo"     $ secret in pod 
+      readOnly: true            $ secret in pod 
+  volumes:                      $ secret in pod 
+  - name: foo                   $ secret in pod 
+    secret:                     $ secret in pod 
+      secretName: mysecret      $ secret in pod 
 
 --Using Secret as Environment Variables 
 apiVersion: v1 
@@ -271,10 +273,10 @@ In this exercise, you will first create a Secret from literal values. Next, you'
 4. (Optional) Discuss: What is one of the benefit of using a Secret over a ConfigMap?
 
 # Solution 3 
-# kubectl create secret generic db-credentials --from-literal=db-password=passwd
-# kubectl get secrets 
-# kubectl run backend --image=nginx --restart=Never -o yaml --dry-run > backend-pod.yaml 
-# vim backend-pod.yaml 
+$ kubectl create secret generic db-credentials --from-literal=db-password=passwd
+$ kubectl get secrets 
+$ kubectl run backend --image=nginx --restart=Never -o yaml --dry-run > backend-pod.yaml 
+$ vim backend-pod.yaml 
 ...
 spec: 
   containers: 
@@ -288,10 +290,10 @@ spec:
             key: db-password
 ...
 
-# kubectl create -f backend-pod.yaml
-# kubectl get pod 
-# kubectl exec -it backend -- /bin/sh 
-  # env | grep DB_PASSWORD
+$ kubectl create -f backend-pod.yaml
+$ kubectl get pod 
+$ kubectl exec -it backend -- /bin/sh 
+  $ env | grep DB_PASSWORD
 
 
 --Security Context 
@@ -301,19 +303,19 @@ kind: Pod
 metadata: 
   name: security-pod-demo 
 spec: 
-  securityContext:      #securityContext for Pod  
-    runAsUser: 1000     #securityContext for Pod 
-    runAsGroup: 3000    #securityContext for Pod 
-    fsGroup: 2000       #securityContext for Pod 
-  volumes:              #securityContext for Pod 
-  - name: sec-ctx-vol   #securityContext for Pod 
-    emptyDir: {}        #securityContext for Pod 
+  securityContext:      $securityContext for Pod  
+    runAsUser: 1000     $securityContext for Pod 
+    runAsGroup: 3000    $securityContext for Pod 
+    fsGroup: 2000       $securityContext for Pod 
+  volumes:              $securityContext for Pod 
+  - name: sec-ctx-vol   $securityContext for Pod 
+    emptyDir: {}        $securityContext for Pod 
   containers: 
   - name: security-container-demo 
     image: busybox 
-    volumeMounts:           #securityContext for Container 
-    - name: sec-ctx-vol     #securityContext for Container
-      mountPath: /data/demo #securityContext for Container
+    volumeMounts:           $securityContext for Container 
+    - name: sec-ctx-vol     $securityContext for Container
+      mountPath: /data/demo $securityContext for Container
 
 -runAsUser field specifies that for any Containers in the Pod, all processes run with user ID 1000.
 -runAsGroup field specifies the primary group ID of 3000 for all processes within any containers of the Pod.
@@ -329,8 +331,8 @@ In this exercise, you will create a Pod that defines a filesystem group ID as se
 3. Get a shell to the running container and create a new file named `logs.txt` in the directory `/data/app`. List the contents of the directory and write them down.
 
 # Solution 4
-# kubectl run secured --image=nginx --restart=Never -o yaml --dry-run > secured-pod.yaml 
-# vi secured-pod.yaml 
+$ kubectl run secured --image=nginx --restart=Never -o yaml --dry-run > secured-pod.yaml 
+$ vi secured-pod.yaml 
 apiVersion: v1
 kind: Pod
 metadata:
@@ -362,14 +364,14 @@ spec:
       mountPath: /data/app 
 ...
 
-# kubectl create -f secured-pod.yaml 
-# kubectl exec -it secured -- /bin/sh 
-  # cd /data/app
-  # touch logs.txt 
-  # ls -l 
+$ kubectl create -f secured-pod.yaml 
+$ kubectl exec -it secured -- /bin/sh 
+  $ cd /data/app
+  $ touch logs.txt 
+  $ ls -l 
   total 0
   -rw-r--r-- 1 root 3000 0 Dec  2 21:34 log.txt
-  # exit 
+  $ exit 
 
 
 --Resource Boundaries
@@ -377,6 +379,7 @@ spec:
 
 # Exercise 5
 In this exercise, you will create a ResourceQuota with specific CPU and memory limits for a new namespace. Pods created in the namespace will have to adhere to those limits.
+
 ## Defining a Pod’s Resource Requirements
 Create a resource quota named `apps` under the namespace `rq-demo` using the following YAML definition in the file `rq.yaml`.
 
@@ -396,8 +399,8 @@ spec:
 2. Change the request limits to fulfill the requirements to ensure that the Pod could be created successfully. Write down the output of the command that renders the used amount of resources for the namespace.
 
 # Solution 5 
-# kubectl create namespace rq-demo 
-# vi rq.yaml 
+$ kubectl create namespace rq-demo 
+$ vi rq.yaml 
 apiVersion: v1 
 kind: ResourceQuota 
 metadata: 
@@ -408,10 +411,10 @@ spec:
     requests.cpu: "2"
     requests.memory: 500m
 
-# kubectl create -f rq.yaml -n rq-demo 
-# kubectl describe quota -n rq-demo  
-# kubectl run test-pod --image=nginx --restart=Never -o yaml > test-pod.yaml
-# vi test-pod.yaml 
+$ kubectl create -f rq.yaml -n rq-demo 
+$ kubectl describe quota -n rq-demo  
+$ kubectl run test-pod --image=nginx --restart=Never -o yaml > test-pod.yaml
+$ vi test-pod.yaml 
 apiVersion: v1
 kind: Pod
 metadata:
@@ -439,9 +442,9 @@ spec:
         cpu: "200m"
 -----
 
-# kubectl create -f pod.yaml -n rq-demo 
+$ kubectl create -f pod.yaml -n rq-demo 
 Error from server (Forbidden): error when creating "test-pod.yaml": pods "test-pod" is forbidden: exceeded quota: apps, requested: requests.cpu=1G, used: requests.cpu=0, limited: requests.cpu=2
-# vi test-pod.yaml 
+$ vi test-pod.yaml 
 ...
 spec: 
   resources: 
@@ -450,9 +453,9 @@ spec:
       cpu: "200m"
 ...
 
-# kubectl get pods -n rq-demo 
-# kubectl create -f pod.yaml -n rq-demo 
-# kubectl describe quota --namespace=rq-demo 
+$ kubectl get pods -n rq-demo 
+$ kubectl create -f pod.yaml -n rq-demo 
+$ kubectl describe quota --namespace=rq-demo 
 Name:            apps
 Namespace:       rq-demo
 Resource         Used  Hard
@@ -468,16 +471,16 @@ When you create a pod, if you do not specify a service account, it is automatica
 
 # Exercise 6
 In this exercise, you will create a ServiceAccount and assign it to a Pod.
-## Using a ServiceAccount
+$$ Using a ServiceAccount
 1. Create a new service account named `backend-team`.
 2. Print out the token for the service account in YAML format.
 3. Create a Pod named `backend` that uses the image `nginx` and the identity `backend-team` for running processes.
 4. Get a shell to the running container and print out the token of the service account.
 
 # Solution 6 
-# kubectl create serviceaccount backend-team 
-# kubectl get serviceaccount backend-team -o yaml --export 
-→ --export # Get a resource's YAML without cluster specific information
+$ kubectl create serviceaccount backend-team 
+$ kubectl get serviceaccount backend-team -o yaml --export 
+→ --export $ Get a resource's YAML without cluster specific information
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -487,31 +490,31 @@ metadata:
 secrets:
 - name: backend-team-token-7qxd8
 
-# kubectl run backend --image=nginx --restart=Never -o yaml --dry-run > backend-pod.yaml 
-# vi backend-pod.yaml 
+$ kubectl run backend --image=nginx --restart=Never -o yaml --dry-run > backend-pod.yaml 
+$ vi backend-pod.yaml 
 ...
 spec: 
   serviceAccountName: backend-team
 ...
-# kubectl create -f backend-pod.yaml 
-# kubectl get pod backend -o yaml | less 
+$ kubectl create -f backend-pod.yaml 
+$ kubectl get pod backend -o yaml | less 
   → find the serviceaccount's secret name: backend-team-token-7qxd8
   → it should be somewhere here: 
   volumeMounts:
     - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
       name: backend-team-token-7qxd8
       readOnly: true
-# kubectl exec -it backend -- /bin/sh 
-  # ls /var/run/secrets/kubernetes.io/serviceaccount
-  # cat token
+$ kubectl exec -it backend -- /bin/sh 
+  $ ls /var/run/secrets/kubernetes.io/serviceaccount
+  $ cat token
 
 --or--
-# kubectl run backend2 --image=nginx --restart=Never --serviceaccount=backend-team 
-# kubectl get pod 
-# kubectl exec -it backend2 -- /bin/sh 
-  # cd /var/run/secrets/kubernetes.io/serviceaccount
-  # ls -l 
-  # cat token 
+$ kubectl run backend2 --image=nginx --restart=Never --serviceaccount=backend-team 
+$ kubectl get pod 
+$ kubectl exec -it backend2 -- /bin/sh 
+  $ cd /var/run/secrets/kubernetes.io/serviceaccount
+  $ ls -l 
+  $ cat token 
 
 
 --Multi-container Pod 
@@ -538,8 +541,8 @@ Kubernetes runs an init container before the main container. In this scenario, t
 6. (Optional) Discuss: How would you approach a debugging a failing command inside of the init container?
 
 # Solution 7 (InitContainer)
-# kubectl run business-app --image=bmuschko/nodejs-read-config:1.0.0 --port=8080 --restart=Never -o yaml --dry-run > business-app.yaml 
-# vi business-app.yaml 
+$ kubectl run business-app --image=bmuschko/nodejs-read-config:1.0.0 --port=8080 --restart=Never -o yaml --dry-run > business-app.yaml 
+$ vi business-app.yaml 
 (before)
 apiVersion: v1
 kind: Pod
@@ -585,10 +588,10 @@ spec:
   - name: configdir
     emptyDir: {}
 
-# kubectl apply -f business-app.yaml 
+$ kubectl apply -f business-app.yaml 
 
 -Check the log from all containers: 
-# kubectl logs business-app --all-containers=true
+$ kubectl logs business-app --all-containers=true
 Connecting to raw.githubusercontent.com (151.101.108.133:443)
 wget: note: TLS certificate validation not implemented
 saving to '/usr/shared/app/config.json'
@@ -596,15 +599,16 @@ config.json          100% |********************************|   102  0:00:00 ETA
 '/usr/shared/app/config.json' saved
 Server running at http://0.0.0.0:8080/
 
-# kubectl exec -it business-app --container web -- /bin/sh
-  # ls -l /usr/shared/app/config.json
-  # curl localhost:8080
+$ kubectl exec -it business-app --container web -- /bin/sh
+  $ ls -l /usr/shared/app/config.json
+  $ curl localhost:8080
   Database URL: localhost:5432/customers
-  # exit 
+  $ exit 
 
 
 # Exercise 8
 In this exercise, you will implement the adapter pattern for a multi-container Pod.
+
 ## Implementing the Adapter Pattern
 The adapter pattern helps with providing a simplified, homogenized view of an application running within a container. For example, we could stand up another container that unifies the log output of the application container. As a result, other monitoring tools can rely on a standardized view of the log output without having to transform it into an expected format.
 
