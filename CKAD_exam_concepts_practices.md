@@ -195,6 +195,7 @@ In this exercise, you will first create a ConfigMap from predefined values in a 
 
 <details><summary>Solution 2</summary>
 <p>
+
 ```bash
 $ vim config.txt 
   DB_URL=localhost:3306
@@ -215,6 +216,7 @@ $ kubectl create -f pod.yaml
 $ kubectl get pods | grep backend 
 $ kubectl exec -it backend -- env | grep DB_
 ```
+
 </p>
 </details>
 
