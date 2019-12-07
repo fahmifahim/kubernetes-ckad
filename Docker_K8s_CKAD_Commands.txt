@@ -765,6 +765,13 @@ https://kubernetes.io/docs/reference/kubectl/cheatsheet/
 https://matthewpalmer.net/kubernetes-app-developer/#purchase-the-ebook
 https://github.com/dgkanatsios/CKAD-exercises
 
+--Video Tutorial (Oreilly):
+Benjamin Muschko
+https://learning.oreilly.com/live-training/courses/certified-kubernetes-application-developer-crash-course-ckad/0636920329176/
+
+Sander Van Vught
+https://learning.oreilly.com/live-training/courses/certified-kubernetes-application-developer-ckad-crash-course/0636920318439/
+
 --Time Management: 
 19 Problems in 2 hours. Use your time wisely!
 There might be weight of point for specific questions. 
@@ -1261,6 +1268,109 @@ spec:
   # cd /var/run/secrets/kubernetes.io/serviceaccount
   # ls -l 
   # cat token 
+
+
+--Multi-container Pod 
+https://blog.nillsf.com/index.php/2019/07/28/ckad-series-part-4-multi-container-pods/
+1. Sidecar container 
+adds functionality to your application that could be included in the main container. By hosting this logic in a sidecar, you can keep that functionality out of your main application and evolve that independently from the actual application.
+2. Ambassador container 
+proxies a local connection to certain outbound connection. The ambassadors brokers the connection the outside world. This can for instance be used to shard a service or to implement client side load balancing.
+3. Adapter container 
+takes data from the existing application and presents that in a standardized way. This is for instance very useful for monitoring data.
+4. Init container
+An init-container is a special container that runs before the other containers in your pod.
+
+
+# Exercise 7 (InitContainer)
+In this exercise, you will initialize a web application by standing up environment-specific configuration through an init container.
+## Creating an Init Container
+Kubernetes runs an init container before the main container. In this scenario, the init container retrieves configuration files from a remote location and makes it available to the application running in the main container. The configuration files are shared through a volume mounted by both containers. The running application consumes the configuration files and can render its values.
+1. Create a new Pod in a YAML file named `business-app.yaml`. The Pod should define two containers, one init container and one main application container. Name the init container `configurer` and the main container `web`. The init container uses the image `busybox`, the main container uses the image `bmuschko/nodejs-read-config:1.0.0`. Expose the main container on port 8080.
+2. Edit the YAML file by adding a new volume of type `emptyDir` that is mounted at `/usr/shared/app` for both containers.
+3. Edit the YAML file by providing the command for the init container. The init container should run a `wget` command for downloading the file `https://raw.githubusercontent.com/bmuschko/ckad-crash-course/master/exercises/07-creating-init-container/app/config/config.json` into the directory `/usr/shared/app`.
+4. Start the Pod and ensure that it is up and running.
+5. Run the command `curl localhost:8080` from the main application container. The response should render a database URL derived off the information in the configuration file.
+6. (Optional) Discuss: How would you approach a debugging a failing command inside of the init container?
+
+# Solution 7
+# kubectl run business-app --image=bmuschko/nodejs-read-config:1.0.0 --port=8080 --restart=Never -o yaml --dry-run > business-app.yaml 
+# vi business-app.yaml 
+(before)
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: business-app
+  name: business-app
+spec:
+  containers:
+  - image: bmuschko/nodejs-read-config:1.0.0
+    name: business-app
+    ports:
+    - containerPort: 8080
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+status: {}
+
+(after)
+spec:
+  initContainers: 
+  - name: configurer 
+    image: busybox 
+    volumeMounts: 
+    - name: configdir 
+      mountPath: /usr/shared/app
+    command: 
+    - wget
+    - "-O"
+    - "/usr/shared/app/config.json"
+    - "https://raw.githubusercontent.com/bmuschko/ckad-crash-course/master/exercises/07-creating-init-container/app/config/config.json"
+  containers: 
+  - name: web 
+    image: bmuschko/nodejs-read-config:1.0.0
+    ports: 
+    - containerPort: 8080
+    resources: {}
+    volumeMounts: 
+    - name: configdir 
+      mountPath: /usr/shared/app
+  volumes: 
+  - name: configdir
+    emptyDir: {}
+
+# kubectl apply -f business-app.yaml 
+
+-Check the log from all containers: 
+# kubectl logs business-app --all-containers=true
+Connecting to raw.githubusercontent.com (151.101.108.133:443)
+wget: note: TLS certificate validation not implemented
+saving to '/usr/shared/app/config.json'
+config.json          100% |********************************|   102  0:00:00 ETA
+'/usr/shared/app/config.json' saved
+Server running at http://0.0.0.0:8080/
+
+# kubectl exec -it business-app --container web -- /bin/sh
+  # ls -l /usr/shared/app/config.json
+  # curl localhost:8080
+  Database URL: localhost:5432/customers
+  # exit 
+
+
+--Sidecar Container pattern 
+Enhance logic of main container application 
+
+
+
+
+
+
+
+
+
+
 
 
 
