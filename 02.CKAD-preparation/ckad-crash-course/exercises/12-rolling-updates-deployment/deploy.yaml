@@ -5,8 +5,10 @@ metadata:
   labels:
     tier: backend
   name: deploy
+  annotations:
+    kubernetes.io/change-cause: 'scale to 10'
 spec:
-  replicas: 3
+  replicas: 10
   selector:
     matchLabels:
       app: v1
