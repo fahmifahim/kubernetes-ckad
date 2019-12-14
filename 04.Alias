@@ -1,0 +1,2 @@
+alias k="kubectl"
+alias kgetall="clear;kubectl get all --show-labels"
