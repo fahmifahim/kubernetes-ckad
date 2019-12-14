@@ -5,9 +5,9 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      selec: nginx
+      app: nginx
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          access: 'true'
+          access: "true"
