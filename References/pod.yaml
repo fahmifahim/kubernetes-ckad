@@ -3,13 +3,20 @@ kind: Pod
 metadata:
   creationTimestamp: null
   labels:
-    run: busybox
-  name: busybox
+    run: app
+  name: app
 spec:
   containers:
-  - image: busybox
-    name: busybox
+  - image: nginx
+    name: app
+    volumeMounts:
+      - mountPath: "/data/app/config"
+        name: configpvc
     resources: {}
+  volumes:
+    - name: configpvc
+      persistentVolumeClaim:
+        claimName: pvc
   dnsPolicy: ClusterFirst
   restartPolicy: Never
 status: {}

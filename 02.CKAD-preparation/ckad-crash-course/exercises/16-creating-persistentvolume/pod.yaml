@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
+spec:
+  volumes:
+    - name: pv-storage
+      persistentVolumeClaim:
+        claimName: pvc
+  containers:
+    - name: app
+      image: nginx
+      volumeMounts:
+        - mountPath: "/var/app/config"
+          name: pv-storage
