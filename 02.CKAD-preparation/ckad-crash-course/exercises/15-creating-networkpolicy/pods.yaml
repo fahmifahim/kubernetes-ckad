@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox-curl-1
+  labels:
+    trusted: "yes"
+spec:
+  containers:
+  - name: busybox
+    image: busybox
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox-curl-2
+spec:
+  containers:
+  - name: busybox
+    image: busybox
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-dev
+  labels:
+    app: "web"
+    env: "dev"
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-prod
+  labels:
+    app: "web"
+    env: "prod"
+spec:
+  containers:
+  - name: nginx
+    image: nginx
