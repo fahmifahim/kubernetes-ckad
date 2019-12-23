@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: backend2
+  name: backend2
+spec:
+  containers:
+  - image: nginx
+    name: backend2
+    envFrom:
+    - secretRef:
+        name: db-credentials2
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+status: {}

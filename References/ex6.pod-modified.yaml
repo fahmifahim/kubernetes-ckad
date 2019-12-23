@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: 2019-12-21T08:48:24Z
+  labels:
+    run: backend
+  name: backend
+  namespace: ex6-namespace
+  resourceVersion: "37049"
+  selfLink: /api/v1/namespaces/ex6-namespace/pods/backend
+  uid: 227e2e53-c5fe-42ed-9138-bdaacadebb18
+spec:
+  containers:
+  - image: nginx
+    imagePullPolicy: Always
+    name: backend
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: default-token-dslf6
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: minikube
+  priority: 0
+  restartPolicy: Never
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: backend-team
+  serviceAccountName: backend-team
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: default-token-dslf6
+    secret:
+      defaultMode: 420
+      secretName: default-token-dslf6
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: 2019-12-21T08:48:24Z
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: 2019-12-21T08:48:30Z
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: 2019-12-21T08:48:30Z
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: 2019-12-21T08:48:24Z
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: docker://e5c825e2a495230c404a1de69116ad47390f0b5fd2203b1d6e3f421477f95a64
+    image: nginx:latest
+    imageID: docker-pullable://nginx@sha256:50cf965a6e08ec5784009d0fccb380fc479826b6e0e65684d9879170a9df8566
+    lastState: {}
+    name: backend
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: 2019-12-21T08:48:29Z
+  hostIP: 192.168.64.19
+  phase: Running
+  podIP: 172.17.0.8
+  podIPs:
+  - ip: 172.17.0.8
+  qosClass: BestEffort
+  startTime: 2019-12-21T08:48:24Z

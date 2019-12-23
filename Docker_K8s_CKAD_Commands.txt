@@ -122,6 +122,7 @@ https://kubernetes.io/docs/tasks/tools/install-minikube/
 
 --Starting Minikube with NetworkPolicy
 minikube start \
+    --extra-config=kubelet.authentication-token-webhook=true \
     --network-plugin=cni \
     --enable-default-cni \
     --container-runtime=containerd \

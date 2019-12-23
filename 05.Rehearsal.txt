@@ -1,0 +1,335 @@
+ex1.
+Basic pod, namespace 
+https://github.com/fahmifahim/kubernetes/blob/master/01.CKAD_exam_concepts_practices.md#exercise-1
+$ kubectl create namespace ckad-prep 
+
+
+ex2. 
+ConfigMap with environment file
+https://github.com/fahmifahim/kubernetes/blob/master/01.CKAD_exam_concepts_practices.md#exercise-2-configmap
+$ kubectl create configmap db-config --from-env-file=config.txt
+$ vim pod.yaml (to use configmap)  
+spec:
+  containers:
+  - image: ...
+    name: ...
+    envFrom:
+    - configMapRef:
+        name: db-config
+
+
+ex3. 
+Secret (keyword: distribute credentials securely using secret)
+https://github.com/fahmifahim/kubernetes/blob/master/01.CKAD_exam_concepts_practices.md#exercise-3-secret
+$ kubectl create secret generic db-credentials --from-literal=db-user-name='user1'
+$ kubectl create secret generic db-credentials2 --from-literal=db-pwd='password'
+$ vim pod.yaml (use secret in the pod as environment)
+spec: 
+  containers:
+  - name: ...
+    image: ...
+    env: 
+    - name: DB_USERNAME             # desired variable at the containers
+      valueFrom:
+        secretKeyRef:
+          name: db-credentials      # name of declared secret
+          key: db-username          # name of key inside the secret 
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: db-credentials
+          key: db-pwd 
+
+# if you want to use all the keys inside the secret: 
+spec: 
+  containers: 
+  - name: ...
+    image: ...
+    envFrom: 
+    - secretRef: 
+        name: db-credentials        # the env variable will be `db-user`. method same as ConfigMap
+
+
+ex4.
+SecurityContext
+https://github.com/fahmifahim/kubernetes/blob/master/01.CKAD_exam_concepts_practices.md#exercise-4-security-context
+$ vim pod.yaml (define security context in pod )
+spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+  volumes:
+  - name: security-ctx-vol                  # volume to apply the security context rules
+    emptyDir: {}
+  containers:
+  - name: ...
+    image: ...
+    volumeMounts:
+    - name: security-ctx-vol                # must match the security context-ed volume
+      mountPath: /data/app                  # path of directory inside container
+
+# add capability security context only at a single container 
+spec:
+  containers:
+  - name: ...
+    image: ...
+    securityContext:
+      capabilities:
+        add: ["NET_ADMIN", "SYS_TIME"]
+
+
+ex5. 
+ResourceQuota
+https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/quota-memory-cpu-namespace/
+$ vim quota.yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mem-cpu-quota 
+spec: 
+  hard: 
+    pods: "5"
+    requests.cpu: "2"
+    requests.memory: 1Gi 
+    limits.cpu: "3" 
+    limits.memory: 2Gi
+
+# Define pod with resource quota 
+spec: 
+  containers:
+  - name: ...
+    image: ...
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "100Mi"
+      limits:
+        cpu: "800m"
+        memory: "200Mi"
+
+# Check resource quota in specific namespace 
+$ kubectl get quota
+$ kubectl describe quota 
+
+# List pod based on its used quota 
+$ kubectl top pod <pod-name> --containers 
+
+
+ex6. 
+Service Account
+https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/
+# Create service account 
+$ kubectl create serviceaccount backend-team 
+
+# Create pod with specific service accoun 
+$ kubectl run test-pod1 --image nginx --restart Never --serviceaccount backend-team 
+$ kubectl exec -it test-pod1 -- bash
+  $ cat /var/run/secrets/kubernetes.io/serviceaccount/token 
+
+ex7. 
+InitContainer 
+https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+# Define Init Container: 
+spec:
+  volumes:
+  - name: config-dir 
+    emptyDir: {}
+  initContainers:
+  - image: ...
+    name: ...
+    volumeMounts:
+    - name: config-dir
+      mountPath: /test/dir
+    command:
+    - wget
+    - -O
+    - /usr/shared/app/config.json
+    - https://raw.githubusercontent.com/bmuschko/ckad-crash-course/master/exercises/07-creating-init-container/app/config/config.json
+  containers:
+  - image: ...
+    name: ...
+    ports:
+    - containerPort: 8080
+    volumeMounts:
+    - name: config-dir
+      mountPath: /test/dir    
+
+!! wget command 
+$ kubectl run TEST --image busybox --restart Never --dry-run -o yaml --command -- wget -O test.json www.ibm.com/test.json 
+# YAML format: 
+  command: 
+  - wget 
+  - -O 
+  - test.json
+  - www.ibm.com/test.json
+
+
+ex8. 
+AdapterContainer
+$ kubectl run TEST --image busybox --restart Never --dry-run -o yaml -- /bin/sh -c 'while true; do echo Hello World; sleep 30; done' 
+# YAML format: 
+  args: 
+  - /bin/sh 
+  - -c 
+  - while true; do echo Hello World; sleep 30; done
+
+spec:
+  containers:
+  - name: app
+    image: busybox
+    args:
+    - /bin/sh
+    - -c
+    - while true; do echo "$(date) | $(du -sh ~)" >> /var/logs/diskspace.txt; sleep 5; done;
+  - name: transformer
+    image: busybox
+    args:
+    - /bin/sh
+    - -c
+    - sleep 20; while true; do while read LINE; do echo "$LINE" | cut -f2 -d"|" >> $(date +%Y-%m-%d-%H-%M-%S)-transformed.txt; done < /var/logs/diskspace.txt; sleep 20; done;
+
+
+ex9. 
+Liveness Readiness Probe
+https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+
+spec: 
+  containers: 
+    ports:
+    - name: nodejs-port 
+      containerPort: 3000
+    livenessProbe: 
+      httpGet:
+        path: /
+        port: nodejs-port
+      initialDelaySeconds: 3
+      periodSeconds: 5
+    readinessProbe: 
+      httpGet:
+        path: /healthz
+        port: nodejs-port 
+
+    livenessProbe: 
+      exec: 
+        command:
+        - ls
+      initialDelaySeconds: 5
+      periodSeconds: 10
+
+
+ex10. 
+Debugging misconfigured pod 
+
+ex11. 
+Labels Annotations 
+$ kubectl get pods --show-labels
+$ kubectl label pods <name> label-key=label-value 
+$ kubectl annotate pods <name> annotation-key=annotation-value 
+
+
+ex12.
+Deployment 
+$ kubectl create deployment <name> --image nginx 
+$ kubectl set image deployment <name> nginx=nginx:latest --record 
+$ kubectl rollout history deployment <name> --revision=2
+$ kubectl rollout status deployment <name>
+$ kubectl scale deployment <name> --replicas 5
+
+ex13. 
+CronJob
+# YAML format for Cronjob 
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: hello
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 65         # set this parameter to automatically terminate job after waiting for 65 seconds 
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: busybox
+            args:
+            - /bin/sh
+            - -c
+            - date; echo Hello from the Kubernetes cluster
+          restartPolicy: OnFailure
+
+
+ex15.
+Network Policy 
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-stack-network-policy
+  namespace: app-stack
+spec:
+  podSelector:
+    matchLabels:
+      tier: database
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: backend
+    ports:
+    - protocol: TCP
+      port: 3306
+
+
+ex16.
+Persistent Volume and Claim 
+# Declare PV in advance 
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv
+  labels:
+    id: vol1
+spec:
+  storageClassName: shared
+  capacity:
+    storage: 1Mi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/data/config"
+
+# Declare PVC to bind with the PV 
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc
+spec:
+  storageClassName: shared
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Mi
+  selector: 
+    matchLabels:
+      id: vol1
+
+# Declare pod to use the PVC 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
+spec:
+  volumes:
+    - name: task-pv-storage
+      persistentVolumeClaim:
+        claimName: pvc
+  containers:
+    - name: app
+      image: nginx
+      volumeMounts:
+        - mountPath: "/var/app/config"
+          name: task-pv-storage

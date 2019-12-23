@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: web
+  name: web
+spec:
+  volumes:
+  - name: config-dir
+    emptyDir: {}
+  initContainers:
+  - image: busybox
+    name: configurer
+    volumeMounts:
+    - name: config-dir
+      mountPath: /usr/shared/app
+    command: 
+    - wget
+    - -O
+    - /usr/shared/app/config.json
+    - https://raw.githubusercontent.com/bmuschko/ckad-crash-course/master/exercises/07-creating-init-container/app/config/config.json
+    resources: {}
+  containers:
+  - image: bmuschko/nodejs-read-config:1.0.0
+    name: web
+    volumeMounts:
+    - name: config-dir
+      mountPath: /usr/shared/app
+    ports:
+    - containerPort: 8080
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+status: {}
