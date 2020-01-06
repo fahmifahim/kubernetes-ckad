@@ -1,0 +1,48 @@
+$ kubectl apply -f metric-server/deploy/1.8+/
+clusterrole.rbac.authorization.k8s.io/system:aggregated-metrics-reader created
+clusterrolebinding.rbac.authorization.k8s.io/metrics-server:system:auth-delegator created
+rolebinding.rbac.authorization.k8s.io/metrics-server-auth-reader created
+apiservice.apiregistration.k8s.io/v1beta1.metrics.k8s.io created
+serviceaccount/metrics-server created
+deployment.extensions/metrics-server created
+service/metrics-server created
+clusterrole.rbac.authorization.k8s.io/system:metrics-server created
+clusterrolebinding.rbac.authorization.k8s.io/system:metrics-server created
+
+# Edit metric-server deployment to add the flags
+$ vi deploy/1.8+/metrics-server-deployment.yaml
+
+      containers:
+      - name: metrics-server
+        image: k8s.gcr.io/metrics-server-amd64:v0.3.6
+        args:
+          - --kubelet-insecure-tls						# add this 
+          - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname	# add this
+          - --cert-dir=/tmp
+          - --secure-port=4443
+
+$ kubectl apply -f deploy/1.8+/metrics-server-deployment.yaml
+
+$ kubectl get deployment -n kube-system 
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+coredns          2/2     2            2           3d7h
+metrics-server   1/1     1            1           17m
+
+$ kubectl top pod --all-namespaces
+NAMESPACE     NAME                               CPU(cores)   MEMORY(bytes)
+default       depl-nginx1-5fd4fbf9bb-rlpcr       0m           2Mi
+default       nginx                              0m           2Mi
+kube-system   coredns-5644d7b6d9-p4jlm           5m           7Mi
+kube-system   coredns-5644d7b6d9-q5zvl           5m           22Mi
+kube-system   etcd-minikube                      32m          45Mi
+kube-system   kube-addon-manager-minikube        138m         35Mi
+kube-system   kube-apiserver-minikube            81m          287Mi
+kube-system   kube-controller-manager-minikube   26m          60Mi
+kube-system   kube-proxy-mqxwn                   2m           22Mi
+kube-system   kube-scheduler-minikube            2m           26Mi
+kube-system   metrics-server-5cd4f58f4d-c7qrf    2m           10Mi
+kube-system   storage-provisioner                1m           14Mi
+
+$ kubectl top nodes 
+NAME       CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
+minikube   359m         17%    1286Mi          66%

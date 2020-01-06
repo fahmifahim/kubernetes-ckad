@@ -17,6 +17,18 @@ spec:
     - configMapRef:
         name: db-config
 
+# if you need to mount the ConfigMap to specific path (/somepath) on Container: 
+spec: 
+  volumes: 
+  - name: cm-ref 
+    configMap: 
+      name: db-config 
+  containers: 
+  - name: ...
+    image: ...
+    volumeMounts: 
+    - name: cm-ref 
+      mountPath: /somepath/ 
 
 ex3. 
 Secret (keyword: distribute credentials securely using secret)
@@ -29,7 +41,7 @@ spec:
   - name: ...
     image: ...
     env: 
-    - name: DB_USERNAME             # desired variable at the containers
+    - name: DB_USERNAME             # desired variable at the
       valueFrom:
         secretKeyRef:
           name: db-credentials      # name of declared secret

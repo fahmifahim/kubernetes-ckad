@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: nginx
+  name: nginx
+spec:
+  volumes: 
+    - name: cm-vol
+      emptyDir: {}
+  containers:
+  - image: nginx
+    name: nginx
+    volumeMounts: 
+      - name: cm-vol
+        mountPath: /etc/lala
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+status: {}
