@@ -3,18 +3,16 @@ kind: Pod
 metadata:
   creationTimestamp: null
   labels:
-    run: nginx
-  name: nginx
+    run: busybox
+  name: busybox
 spec:
-  volumes: 
-    - name: cm-vol
-      emptyDir: {}
   containers:
-  - image: nginx
-    name: nginx
-    volumeMounts: 
-      - name: cm-vol
-        mountPath: /etc/lala
+  - args:
+    - /bin/sh
+    - -c
+    - wget -O /usr/shared/app/config.json https://raw.githubusercontent.com/bmuschko/ckad-crash-course/master/exercises/07-creating-init-container/app/config/config.json
+    image: busybox
+    name: busybox
     resources: {}
   dnsPolicy: ClusterFirst
   restartPolicy: Never

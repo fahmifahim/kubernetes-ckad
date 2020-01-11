@@ -1,0 +1,5 @@
+aaaa	1
+bbbb	3
+cccc	10
+dddd	4
+eeee	5

@@ -129,7 +129,7 @@ minikube start \
     --bootstrapper=kubeadm
 
 # deploy the latest metric-server
-$ kubectl apply -f metric-server/deploy/1.8+/
+$ kubectl apply -f 99.metric-server/deploy/1.8+/
 clusterrole.rbac.authorization.k8s.io/system:aggregated-metrics-reader created
 clusterrolebinding.rbac.authorization.k8s.io/metrics-server:system:auth-delegator created
 rolebinding.rbac.authorization.k8s.io/metrics-server-auth-reader created
@@ -140,7 +140,7 @@ service/metrics-server created
 clusterrole.rbac.authorization.k8s.io/system:metrics-server created
 clusterrolebinding.rbac.authorization.k8s.io/system:metrics-server created
 
-$ vi deploy/1.8+/metrics-server-deployment.yaml
+$ vim 99.metrics-server/deploy/1.8+/metrics-server-deployment.yaml
 ...
 containers:
 - name: metrics-server
@@ -152,7 +152,7 @@ containers:
     - --secure-port=4443
 ...
 
-$ kubectl apply -f deploy/1.8+/metrics-server-deployment.yaml
+$ kubectl apply -f 99.metrics-server/deploy/1.8+/metrics-server-deployment.yaml
 
 $ kubectl get deployment -n kube-system
 NAME             READY   UP-TO-DATE   AVAILABLE   AGE

@@ -1,2 +1,0 @@
-bin   dev  home  lib64	mnt  proc  run	 srv  tmp  var
-boot  etc  lib	 media	opt  root  sbin  sys  usr

@@ -1,26 +1,45 @@
-apiVersion: v1
 kind: Pod
+apiVersion: v1
 metadata:
-  creationTimestamp: null
+  name: frontend
+  namespace: app-stack
   labels:
-    run: busybox
-  name: busybox
+    app: todo
+    tier: frontend
 spec:
   containers:
-  - args:
-    - /bin/sh
-    - -c
-    - echo hello; sleep 3600
-    image: busybox
-    name: busybox
-    resources: {}
-  - args:
-    - /bin/sh
-    - -c
-    - echo hello; sleep 3600
-    image: busybox
-    name: busybox2
-    resources: {}
-  dnsPolicy: ClusterFirst
-  restartPolicy: Never
-status: {}
+    - name: frontend
+      image: nginx
+
+---
+
+kind: Pod
+apiVersion: v1
+metadata:
+  name: backend
+  namespace: app-stack
+  labels:
+    app: todo
+    tier: backend
+spec:
+  containers:
+    - name: backend
+      image: nginx
+
+---
+
+kind: Pod
+apiVersion: v1
+metadata:
+  name: database
+  namespace: app-stack
+  labels:
+    app: todo
+    tier: database
+spec:
+  containers:
+    - name: database
+      image: mysql
+      env:
+      - name: MYSQL_ROOT_PASSWORD
+        value: example

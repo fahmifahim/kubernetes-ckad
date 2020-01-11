@@ -1,7 +1,0 @@
-LAST SEEN   TYPE      REASON      OBJECT      MESSAGE
-<unknown>   Normal    Scheduled   pod/mypod   Successfully assigned ckad-prep/mypod to minikube
-75s         Normal    Pulling     pod/mypod   Pulling image "nginx:2.3.5"
-73s         Warning   Failed      pod/mypod   Failed to pull image "nginx:2.3.5": rpc error: code = Unknown desc = Error response from daemon: manifest for nginx:2.3.5 not found
-73s         Warning   Failed      pod/mypod   Error: ErrImagePull
-34s         Normal    BackOff     pod/mypod   Back-off pulling image "nginx:2.3.5"
-47s         Warning   Failed      pod/mypod   Error: ImagePullBackOff

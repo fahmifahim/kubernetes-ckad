@@ -17,18 +17,35 @@ spec:
     - configMapRef:
         name: db-config
 
+# if you need to set specific variable name (eg. VARIABLE_NAME) and get the values from ConfigMap key: 
+spec: 
+  containers: 
+  - name: 
+    image: 
+    env: 
+    - name: VARIABLE_NAME
+      valueFrom: 
+        configMapKeyRef:
+          name: db-config     #configmap name 
+          key: variable-name  #variable from ConfigMap
+
 # if you need to mount the ConfigMap to specific path (/somepath) on Container: 
 spec: 
   volumes: 
   - name: cm-ref 
     configMap: 
       name: db-config 
+  - name: secret-ref 
+    secret: 
+      secretName: mysecret
   containers: 
   - name: ...
     image: ...
     volumeMounts: 
     - name: cm-ref 
-      mountPath: /somepath/ 
+      mountPath: /somepath
+    - name: secret-ref 
+      mountPath: /somepath2 
 
 ex3. 
 Secret (keyword: distribute credentials securely using secret)

@@ -1,0 +1,7 @@
+LAST SEEN   TYPE      REASON      OBJECT      MESSAGE
+<unknown>   Normal    Scheduled   pod/mypod   Successfully assigned ckad-prep/mypod to minikube
+38s         Normal    Pulling     pod/mypod   Pulling image "nginx:2.3.5"
+37s         Warning   Failed      pod/mypod   Failed to pull image "nginx:2.3.5": rpc error: code = Unknown desc = failed to resolve image "docker.io/library/nginx:2.3.5": docker.io/library/nginx:2.3.5 not found
+37s         Warning   Failed      pod/mypod   Error: ErrImagePull
+3s          Normal    BackOff     pod/mypod   Back-off pulling image "nginx:2.3.5"
+3s          Warning   Failed      pod/mypod   Error: ImagePullBackOff

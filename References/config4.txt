@@ -1,2 +1,0 @@
-var3=val3
-var4=val4
