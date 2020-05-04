@@ -6,3 +6,6 @@ This repository for preparation of CKAD (Certified Kubernetes Application Develo
 
 ### Materials are compiled from various sources: 
 - [dgkanatsios_CKAD-exercises](https://github.com/dgkanatsios/CKAD-exercises)
+
+### Practice Hard and Celebrate Your Works!
+![ckad-fahmi](images/ckad-fahmi.png)
