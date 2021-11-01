@@ -3,7 +3,7 @@ kind: Pod
 metadata:
   name: pod-with-host-pid-and-ipc
 spec:
-  hostPID: true
+  hostPID: false
   hostIPC: true
   containers:
   - name: main
