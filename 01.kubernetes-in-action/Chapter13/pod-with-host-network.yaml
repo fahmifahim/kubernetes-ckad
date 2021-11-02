@@ -3,7 +3,7 @@ kind: Pod
 metadata:
   name: pod-with-host-network
 spec:
-  hostNetwork: true
+  hostNetwork: false
   containers:
   - name: main
     image: alpine
